@@ -29,7 +29,7 @@ app.use("/schools/:school", async (req, res, next) => {
   }
 });
 
-app.get("/schools/:school", async (req, res, next) => {
+app.get("/schools/:school", async (_, res, next) => {
   try {
     res.json(res.locals.school);
   } catch (e) {
@@ -37,7 +37,7 @@ app.get("/schools/:school", async (req, res, next) => {
   }
 });
 
-app.get("/schools/:school/buses", async (req, res, next) => {
+app.get("/schools/:school/buses", async (_, res, next) => {
   try {
     res.json(await Models.Bus.find({school_id: res.locals.school._id}));
   } catch (e) {
@@ -58,7 +58,7 @@ app.use("/schools/:school/buses/:bus", async (req, res, next) => {
   }
 });
 
-app.get("/schools/:school/buses/:bus", async (req, res, next) => {
+app.get("/schools/:school/buses/:bus", async (_, res, next) => {
   try {
     res.json(res.locals.bus);
   } catch (e) {
@@ -66,7 +66,7 @@ app.get("/schools/:school/buses/:bus", async (req, res, next) => {
   }
 });
 
-app.get("/schools/:school/buses/:bus/stops", async (req, res, next) => {
+app.get("/schools/:school/buses/:bus/stops", async (_, res, next) => {
   try {
     res.json(await Models.Stop.find({bus_id: res.locals.bus._id}));
   } catch (e) {
@@ -87,7 +87,7 @@ app.use("/schools/:school/buses/:bus/stops/:stop", async (req, res, next) => {
   }
 });
 
-app.get("/schools/:school/buses/:bus/stops/:stop", async (req, res, next) => {
+app.get("/schools/:school/buses/:bus/stops/:stop", async (_, res, next) => {
   try {
     res.json(res.locals.stop);
   } catch (e) {
@@ -95,5 +95,4 @@ app.get("/schools/:school/buses/:bus/stops/:stop", async (req, res, next) => {
   }
 });
 
-
-app.listen(8087);
+app.listen(config.port, config.bindTo);
