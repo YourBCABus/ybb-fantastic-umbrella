@@ -27,6 +27,7 @@ export namespace Models {
     school_id: {type: String, required: true},
     name: String,
     locations: [String],
+    other_names: [String],
     boarding_time: Date,
     departure_time: Date,
     invalidate_time: Date,
