@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
@@ -5,9 +6,55 @@ import express from 'express';
 import { json } from 'body-parser';
 import mongoose from 'mongoose';
 
+import { Bus } from './interfaces';
 import { Models } from './models';
 
+export interface BusLocationUpdateRequest {
+  locations: string[];
+  associate_time?: boolean;
+  invalidate_time: any;
+  source: string;
+}
+
 let isValidId = (id: string) => id && id.match(/^[0-9a-fA-F]{24}$/);
+let authenticate = (permissions: string[]) => {
+  let components = permissions.map(permission => permission.split("."));
+  return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+      let authorization = req.get("Authorization");
+      if (!authorization) {
+        return res.status(401).json({error: "unauthorized"});
+      }
+      if (!authorization.startsWith("Basic ")) {
+        return res.status(400).json({error: "invalid_authorization"});
+      }
+
+      let token = authorization.slice(6);
+      if (token.length !== 44) {
+        return res.status(400).json({error: "invalid_authorization"});
+      }
+
+      let hash = crypto.createHash("sha256");
+      hash.update(Buffer.from(token, "base64"));
+      let tokenHash = hash.digest("base64");
+
+      let match = await Models.AuthToken.findOne({tokenHash});
+      if (match) {
+        if (components.reduce<boolean>((acc: boolean, comp: string[]) => {
+          return acc && !!comp.reduce((acc: any, component: string) => {
+            return acc ? acc[res.locals.school ? component.replace("{school}", res.locals.school._id) : component] : null;
+          }, match.permissions);
+        }, true)) {
+          return next();
+        }
+      }
+
+      res.status(403).json({error: "forbidden"});
+    } catch (e) {
+      next(e);
+    }
+  };
+}
 
 const config = JSON.parse(fs.readFileSync(path.join(__dirname, "../config.json"), "utf8"));
 
@@ -61,6 +108,112 @@ app.use("/schools/:school/buses/:bus", async (req, res, next) => {
 app.get("/schools/:school/buses/:bus", async (_, res, next) => {
   try {
     res.json(res.locals.bus);
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.post("/schools/:school/buses", authenticate(["{school}.bus.create"]), async (req, res, next) => {
+  try {
+    let busData: Partial<Bus> = req.body;
+    busData.school_id = res.locals.school._id;
+
+    let bus = new Models.Bus(busData);
+    try {
+      await bus.validate();
+    } catch (e) {
+      return res.status(400).json({error: "bad_bus"});
+    }
+
+    await bus.save();
+    res.json({ok: true});
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.put("/schools/:school/buses/:bus", authenticate(["{school}.bus.update"]), async (req, res, next) => {
+  try {
+    let busData: Partial<Bus> = req.body;
+    busData.school_id = res.locals.school._id;
+
+    try {
+      await new Models.Bus(busData).validate();
+    } catch (e) {
+      return res.status(400).json({error: "bad_bus"});
+    }
+
+    await res.locals.bus.update(busData, {runValidators: true, overwrite: true});
+    res.json({ok: true});
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.patch("/schools/:school/buses/:bus", authenticate(["{school}.bus.update"]), async (req, res, next) => {
+  try {
+    let busData: Partial<Bus> = req.body;
+
+    if (busData.school_id && busData.school_id !== res.locals.school._id) {
+      return res.status(400).json({error: "bad_school_id", comment: "Nice try. - anli5005"});
+    }
+
+    res.locals.bus.set(busData);
+    try {
+      await res.locals.bus.validate();
+    } catch (e) {
+      return res.status(400).json({error: "bad_bus"});
+    }
+
+    await res.locals.bus.save();
+    res.json({ok: true});
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.delete("/schools/:school/buses/:bus", authenticate(["{school}.bus.delete"]), async (_, res, next) => {
+  try {
+    await Models.BusLocationHistory.deleteMany({bus_id: res.locals.bus._id});
+    await res.locals.bus.delete();
+    res.json({ok: true});
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.put("/schools/:school/buses/:bus/location", authenticate(["{school}.bus.location"]), async (req, res, next) => {
+  try {
+    let now = new Date();
+    let body: BusLocationUpdateRequest = req.body;
+    if (!body.locations) {
+      return res.status(400).json({error: "no_locations"});
+    }
+    if (body.locations.find(el => typeof el !== "string")) {
+      return res.status(400).json({error: "invalid_locations"});
+    }
+    if (typeof body.source !== "string") {
+      return res.status(400).json({error: "invalid_source"});
+    }
+    if (!body.invalidate_time) {
+      return res.status(400).json({error: "no_invalidate_time"});
+    }
+    let invalidate_time = new Date(body.invalidate_time);
+    if (isNaN(invalidate_time.getTime()) || invalidate_time < now) {
+      return res.status(400).json({error: "invalid_invalidate_time"});
+    }
+
+    let historyEntry = new Models.BusLocationHistory({bus_id: res.locals.bus._id, locations: body.locations, source: body.source});
+    if (body.associate_time) {
+      historyEntry.time = now;
+    }
+
+    await historyEntry.save();
+
+    res.locals.bus.set({locations: body.locations, invalidate_time});
+    await res.locals.bus.save();
+
+    res.json({ok: true});
   } catch (e) {
     next(e);
   }
