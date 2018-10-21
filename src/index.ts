@@ -126,7 +126,7 @@ app.post("/schools/:school/buses", authenticate(["{school}.bus.create"]), async 
     }
 
     await bus.save();
-    res.json({ok: true});
+    res.json({ok: true, id: bus._id});
   } catch (e) {
     next(e);
   }
