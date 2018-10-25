@@ -27,6 +27,7 @@
     "@types/mongoose": "^5.2.19",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
+    "firebase-admin": "^6.1.0",
     "mongoose": "^5.3.4"
   }
 }

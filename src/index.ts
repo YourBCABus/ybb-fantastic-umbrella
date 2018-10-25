@@ -5,6 +5,7 @@ import path from 'path';
 import express from 'express';
 import { json } from 'body-parser';
 import mongoose from 'mongoose';
+import * as admin from 'firebase-admin';
 
 import { Bus } from './interfaces';
 import { Models } from './models';
@@ -55,10 +56,29 @@ let authenticate = (permissions: string[]) => {
     }
   };
 }
+let processNotificationText = (text: string, bus: Bus) => {
+  let location = (bus.locations && bus.locations.length > 0) ? bus.locations[0] : "?";
+  return text.replace(/\${name}/gi, bus.name || "").replace(/\${location}/gi, location);
+};
 
 const config = JSON.parse(fs.readFileSync(path.join(__dirname, "../config.json"), "utf8"));
+let serviceAccount: admin.ServiceAccount;
+
+try {
+  serviceAccount = JSON.parse(fs.readFileSync(path.join(__dirname, "../service-account.json"), "utf8"));
+} catch (e) {
+  console.log("Failed to read service-account.json:");
+  console.log(e.stack);
+  console.log("Push notifications will not be sent.")
+}
 
 mongoose.connect(config.mongo);
+
+if (serviceAccount) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+}
 
 const app = express();
 app.use(json());
@@ -214,6 +234,27 @@ app.put("/schools/:school/buses/:bus/location", authenticate(["{school}.bus.loca
     await res.locals.bus.save();
 
     res.json({ok: true});
+
+    if (serviceAccount && body.locations.length > 0) {
+      console.log("Sending message over FCM...");
+
+      let message = {
+        topic: `school.${res.locals.school._id}.bus.${res.locals.bus._id}`,
+        notification: {
+          title: processNotificationText(config.notification.title, res.locals.bus),
+          body: processNotificationText(config.notification.text, res.locals.bus)
+        },
+        data: {
+          bus: res.locals.bus._id.toString(),
+          location: body.locations[0],
+          invalidate_time: invalidate_time.toJSON(),
+          source: body.source,
+          time: new Date().toJSON()
+        }
+      };
+
+      admin.messaging().send(message as any).then(_ => console.log("Successfully sent."));
+    }
   } catch (e) {
     next(e);
   }
