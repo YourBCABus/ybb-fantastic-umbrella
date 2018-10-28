@@ -13,7 +13,8 @@ export namespace Models {
   export const AuthToken = model<AuthTokenModel>("AuthToken", new Schema({
     tokenHash: {type: String, required: true, unique: true},
     permissions: Schema.Types.Mixed,
-    description: String
+    description: String,
+    schools: [String]
   }));
 
   export const School = model<SchoolModel>("School", new Schema({

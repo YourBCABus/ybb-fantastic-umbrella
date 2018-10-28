@@ -1,5 +1,9 @@
 export interface Permissions {
   bus?: {create?: boolean, update?: boolean, delete?: boolean, location?: boolean};
+  stop?: {create?: boolean, update?: boolean, delete?: boolean, suggest?: boolean};
+  school?: {update?: boolean, delete?: boolean};
+  auth?: boolean;
+  admin?: boolean;
 }
 
 export interface AuthToken extends Permissions {
@@ -7,6 +11,7 @@ export interface AuthToken extends Permissions {
   tokenHash: string;
   permissions: Record<string, Permissions>;
   description?: string;
+  schools: string[];
 }
 
 export interface Coordinate {
