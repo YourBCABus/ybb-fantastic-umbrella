@@ -40,6 +40,7 @@ let authenticate = (permissions: string[]) => {
       let tokenHash = hash.digest("base64");
 
       let match = await Models.AuthToken.findOne({tokenHash});
+      res.locals.auth = match;
       if (match) {
         if (components.reduce<boolean>((acc: boolean, comp: string[]) => {
           return acc && !!comp.reduce((acc: any, component: string) => {
