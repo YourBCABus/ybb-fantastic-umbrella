@@ -6,6 +6,7 @@ export interface AuthToken extends Permissions {
   _id: any;
   tokenHash: string;
   permissions: Record<string, Permissions>;
+  description?: string;
 }
 
 export interface Coordinate {
@@ -50,4 +51,12 @@ export interface Stop {
   arrival_time?: Date;
   invalidate_time?: Date;
   available: boolean;
+}
+
+export interface StopSuggestion {
+  _id: any;
+  bus_id: string;
+  location: Coordinate;
+  time?: Date;
+  source?: string;
 }

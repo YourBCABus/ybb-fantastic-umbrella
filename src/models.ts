@@ -1,17 +1,19 @@
 import { model, Schema, Document } from 'mongoose';
 
-import { AuthToken, School, Bus, BusLocationHistory, Stop } from './interfaces';
+import { AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion } from './interfaces';
 
 export interface AuthTokenModel extends Document, AuthToken {}
 export interface SchoolModel extends Document, School {}
 export interface BusModel extends Document, Bus {}
 export interface BusLocationHistoryModel extends Document, BusLocationHistory {}
 export interface StopModel extends Document, Stop {}
+export interface StopSuggestionModel extends Document, StopSuggestion {}
 
 export namespace Models {
   export const AuthToken = model<AuthTokenModel>("AuthToken", new Schema({
     tokenHash: {type: String, required: true, unique: true},
-    permissions: Schema.Types.Mixed
+    permissions: Schema.Types.Mixed,
+    description: String
   }));
 
   export const School = model<SchoolModel>("School", new Schema({
@@ -53,5 +55,15 @@ export namespace Models {
     arrival_time: Date,
     invalidate_time: Date,
     available: {type: Boolean, required: true, default: true}
+  }));
+
+  export const StopSuggestion = model<StopSuggestionModel>("StopSuggestion", new Schema({
+    bus_id: {type: String, required: true},
+    location: {
+      latitude: {type: Number, required: true},
+      longitude: {type: Number, required: true}
+    },
+    time: Date,
+    source: String
   }));
 }
