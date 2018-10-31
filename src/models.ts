@@ -12,9 +12,23 @@ export interface StopSuggestionModel extends Document, StopSuggestion {}
 export namespace Models {
   export const AuthToken = model<AuthTokenModel>("AuthToken", new Schema({
     tokenHash: {type: String, required: true, unique: true},
-    permissions: Schema.Types.Mixed,
     description: String,
-    schools: [String]
+    school_id: String,
+    admin: Boolean,
+    bus: {
+      create: Boolean,
+      update: Boolean,
+      delete: Boolean,
+      location: Boolean
+    },
+    stop: {
+      create: Boolean,
+      update: Boolean,
+      delete: Boolean,
+      suggest: Boolean,
+      arrivalTimes: Boolean
+    },
+    auth: Boolean
   }));
 
   export const School = model<SchoolModel>("School", new Schema({

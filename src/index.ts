@@ -19,8 +19,8 @@ export interface BusLocationUpdateRequest {
 }
 
 let isValidId = (id: string) => id && id.match(/^[0-9a-fA-F]{24}$/);
-let authenticate = (permissions?: string[]) => {
-  let components = permissions && permissions.map(permission => permission.split("."));
+let authenticate = (permission?: string) => {
+  let components = permission && permission.split(".");
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
       let authorization = req.get("Authorization");
@@ -43,11 +43,9 @@ let authenticate = (permissions?: string[]) => {
       let match = await Models.AuthToken.findOne({tokenHash});
       res.locals.auth = match;
       if (match) {
-        if (!permissions || (match.permissions.global.admin || components.reduce<boolean>((acc: boolean, comp: string[]) => {
-          return acc && !!comp.reduce((acc: any, component: string) => {
-            return acc ? acc[res.locals.school ? component.replace("{school}", res.locals.school._id) : component] : null;
-          }, match.permissions);
-        }, true))) {
+        if (match.admin || (match.school_id === res.locals.school._id.toString() && components.reduce((acc: any, component: string) => {
+          return acc ? acc[component] : null;
+        }, match))) {
           return next();
         }
       }
@@ -135,7 +133,7 @@ app.get("/schools/:school/buses/:bus", async (_, res, next) => {
   }
 });
 
-app.post("/schools/:school/buses", authenticate(["{school}.bus.create"]), async (req, res, next) => {
+app.post("/schools/:school/buses", authenticate("bus.create"), async (req, res, next) => {
   try {
     let busData: Partial<Bus> = req.body;
     busData.school_id = res.locals.school._id;
@@ -154,7 +152,7 @@ app.post("/schools/:school/buses", authenticate(["{school}.bus.create"]), async 
   }
 });
 
-app.put("/schools/:school/buses/:bus", authenticate(["{school}.bus.update"]), async (req, res, next) => {
+app.put("/schools/:school/buses/:bus", authenticate("bus.update"), async (req, res, next) => {
   try {
     let busData: Partial<Bus> = req.body;
     busData.school_id = res.locals.school._id;
@@ -172,7 +170,7 @@ app.put("/schools/:school/buses/:bus", authenticate(["{school}.bus.update"]), as
   }
 });
 
-app.patch("/schools/:school/buses/:bus", authenticate(["{school}.bus.update"]), async (req, res, next) => {
+app.patch("/schools/:school/buses/:bus", authenticate("bus.update"), async (req, res, next) => {
   try {
     let busData: Partial<Bus> = req.body;
 
@@ -194,7 +192,7 @@ app.patch("/schools/:school/buses/:bus", authenticate(["{school}.bus.update"]), 
   }
 });
 
-app.delete("/schools/:school/buses/:bus", authenticate(["{school}.bus.delete"]), async (_, res, next) => {
+app.delete("/schools/:school/buses/:bus", authenticate("bus.delete"), async (_, res, next) => {
   try {
     await Models.BusLocationHistory.deleteMany({bus_id: res.locals.bus._id});
     await res.locals.bus.delete();
@@ -204,7 +202,7 @@ app.delete("/schools/:school/buses/:bus", authenticate(["{school}.bus.delete"]),
   }
 });
 
-app.put("/schools/:school/buses/:bus/location", authenticate(["{school}.bus.location"]), async (req, res, next) => {
+app.put("/schools/:school/buses/:bus/location", authenticate("bus.location"), async (req, res, next) => {
   try {
     let now = new Date();
     let body: BusLocationUpdateRequest = req.body;
@@ -291,7 +289,7 @@ app.get("/schools/:school/buses/:bus/stops/:stop", async (_, res, next) => {
   }
 });
 
-app.post("/schools/:school/buses/:bus/stops", authenticate(["{school}.stop.create"]), async (req, res, next) => {
+app.post("/schools/:school/buses/:bus/stops", authenticate("stop.create"), async (req, res, next) => {
   try {
     let stopData: Partial<Stop> = req.body;
     stopData.bus_id = res.locals.bus._id;
@@ -310,7 +308,7 @@ app.post("/schools/:school/buses/:bus/stops", authenticate(["{school}.stop.creat
   }
 });
 
-app.put("/schools/:school/buses/:bus/stops/:stop", authenticate(["{school}.stop.update"]), async (req, res, next) => {
+app.put("/schools/:school/buses/:bus/stops/:stop", authenticate("stop.update"), async (req, res, next) => {
   try {
     let stopData: Partial<Stop> = req.body;
     stopData.bus_id = res.locals.bus._id;
@@ -328,7 +326,7 @@ app.put("/schools/:school/buses/:bus/stops/:stop", authenticate(["{school}.stop.
   }
 });
 
-app.patch("/schools/:school/buses/:bus/stops/:stop", authenticate(["{school}.stop.update"]), async (req, res, next) => {
+app.patch("/schools/:school/buses/:bus/stops/:stop", authenticate("stop.update"), async (req, res, next) => {
   try {
     let stopData: Partial<Stop> = req.body;
 
@@ -350,7 +348,7 @@ app.patch("/schools/:school/buses/:bus/stops/:stop", authenticate(["{school}.sto
   }
 });
 
-app.delete("/schools/:school/buses/:bus/stops/:stop", authenticate(["{school}.stop.delete"]), async (_, res, next) => {
+app.delete("/schools/:school/buses/:bus/stops/:stop", authenticate("stop.delete"), async (_, res, next) => {
   try {
     await res.locals.stop.delete();
     res.json({ok: true});
@@ -359,74 +357,75 @@ app.delete("/schools/:school/buses/:bus/stops/:stop", authenticate(["{school}.st
   }
 });
 
-export interface AuthTokenRequest {
-  permissions: Record<string, Permissions>;
-  description?: string;
-}
-
-app.get("/auth", authenticate(), async (req, res, next) => {
+app.get("/schools/:school/auth", authenticate("auth"), async (req, res, next) => {
   try {
-    let query: any = {};
-    let userSchools = Object.keys(res.locals.auth.permissions).filter(key => key !== "global" && res.locals.auth.permissions[key].auth);
-    let isAdmin = (res.locals.auth.permissions.global && res.locals.auth.permissions.global.admin);
-
-    if (typeof req.query.school === "string") {
-      if (isAdmin || (req.query.school !== "global" && userSchools.includes(req.query.schools))) {
-        query.school = req.query.school;
-      } else {
-        return res.status(403).json({error: "forbidden"});
-      }
-    } else if (!isAdmin) {
-      query.school = {$in: userSchools};
-    }
-
-    let tokens = await Models.AuthToken.find(query);
-    return res.json(isAdmin ? tokens : tokens.map(token => {
-      return {
-        _id: token._id,
-        tokenHash: token.tokenHash,
-        description: token.description,
-        permissions: Object.keys(token.permissions).reduce((acc, key) => {
-          if (userSchools.includes(key)) {
-            acc[key] = token.permissions[key];
-          }
-          return acc;
-        }, {} as Record<string, Permissions>)
-      };
-    }));
+    return res.json(await Models.AuthToken.find({school_id: res.locals.school._id}));
   } catch (e) {
     next(e);
   }
 });
 
-app.post("/auth", authenticate(), async (req, res, next) => {
+app.post("/schools/:school/auth", authenticate("auth"), async (req, res, next) => {
   try {
-    let authData: AuthTokenRequest = req.body;
-    if (!authData.permissions || (Object.keys(authData.permissions).length < 1 || Object.keys(authData.permissions).find(key => {
-      const permissions = authData.permissions[key];
-      if (permissions) {
-        const keys = Object.keys(permissions);
-        return keys.length < 1 || !!keys.find(theKey => !(permissions as any)[theKey]);
-      } else {
-        return true;
-      }
-    }))) {
-      return res.status(400).json({error: "bad_permissions"});
+    let authData: AuthToken = req.body;
+    if (authData.admin) {
+      return res.status(400).json({error: "cannot_set_admin"});
     }
-    if (authData.description && typeof authData.description !== "string") {
-      return res.status(400).json({error: "bad_auth_data"});
+    authData.school_id = res.locals.school._id;
+
+    let bytes = await promisify(crypto.randomBytes)(32);
+    let hash = crypto.createHash("sha256");
+    hash.update(bytes);
+    authData.tokenHash = hash.digest("base64");
+
+    let token = new Models.AuthToken(authData);
+    try {
+      await token.validate();
+    } catch (e) {
+      return res.status(400).json({error: "bad_bus"});
     }
 
-    let userPermissions = res.locals.auth.permissions;
-    let badKey = Object.keys(authData.permissions).find(key => {
-      if (key === "global") {
-        return !userPermissions.global || !userPermissions.global.admin;
-      } else {
-        return !userPermissions.global.admin && (!userPermissions[key] || !userPermissions[key].auth);
-      }
-    });
-    if (badKey) {
-      return res.status(403).json({error: "forbidden", comment: `Cannot create token with permissions for ${badKey}`});
+    await token.save();
+    return res.json({ok: true, id: token._id, token: bytes.toString("base64")});
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.use("/schools/:school/auth/:token", authenticate("auth"), async (req, res, next) => {
+  try {
+    if (!isValidId(req.params.token)) {
+      return res.status(400).json({error: "bad_token_id"});
+    }
+
+    res.locals.token = await Models.AuthToken.findOne({school_id: res.locals.school._id, _id: req.params.token});
+    return res.locals.token ? next() : res.status(404).json({error: "token_not_found"});
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.delete("/schools/:school/auth/:token", async (_, res, next) => {
+  try {
+    await res.locals.token.delete();
+    res.json({ok: true});
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.get("/admin", authenticate("admin"), async (req, res, next) => {
+  try {
+    return res.json(await Models.AuthToken.find({admin: true}));
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.post("/admin", authenticate("admin"), async (req, res, next) => {
+  try {
+    if ((req.body && req.body.description) && typeof req.body.description !== "string") {
+      return res.status(400).json({error: "bad_description"})
     }
 
     let bytes = await promisify(crypto.randomBytes)(32);
@@ -434,11 +433,11 @@ app.post("/auth", authenticate(), async (req, res, next) => {
     hash.update(bytes);
 
     let token = new Models.AuthToken({
-      tokenHash: hash.digest("base64"),
-      permissions: authData.permissions,
-      description: authData.description,
-      schools: authData.permissions
+      description: req.body ? req.body.description : undefined,
+      admin: true,
+      tokenHash: hash.digest("base64")
     });
+
     await token.save();
 
     return res.json({ok: true, id: token._id, token: bytes.toString("base64")});
@@ -447,49 +446,22 @@ app.post("/auth", authenticate(), async (req, res, next) => {
   }
 });
 
-app.use("/auth/:token", async (req, res, next) => {
+app.use("/admin/:token", authenticate("admin"), async (req, res, next) => {
   try {
     if (!isValidId(req.params.token)) {
       return res.status(400).json({error: "bad_token_id"});
     }
 
     res.locals.token = await Models.AuthToken.findOne({_id: req.params.token});
-    return res.locals.token ? next() : res.status(404).json({error: "token_not_found"});
+    return res.locals.token;
   } catch (e) {
     next(e);
   }
 });
 
-app.delete("/auth/:token", authenticate(), async (req, res, next) => {
+app.delete("/admin/:token", authenticate("admin"), async (req, res, next) => {
   try {
-    if (!res.locals.token.permissions[req.query.school]) {
-      return res.status(404).json({error: "token_not_found"});
-    }
-
-    if (res.locals.auth.permissions.global && res.locals.auth.permissions.global.admin) {
-      await res.locals.token.delete();
-      return;
-    }
-
-    if (typeof req.query.school !== "string") {
-      return res.status(400).json({error: "bad_school"});
-    }
-
-    if (req.query.school === "global" || (!res.locals.auth.permissions[req.query.school] || !res.locals.auth.permissions[req.query.school].auth)) {
-      return res.status(403).json({error: "forbidden"});
-    }
-
-    delete res.locals.token.permissions[req.query.school];
-    if (Object.keys(res.locals.token.permissions).length < 1) {
-      await res.locals.token.delete();
-    } else {
-      let index = res.locals.token.schools.indexOf(req.query.school);
-      if (index >= 0) {
-        res.locals.token.schools.splice(index, 1);
-      }
-      await res.locals.save();
-    }
-
+    await res.locals.token.delete();
     res.json({ok: true});
   } catch (e) {
     next(e);
