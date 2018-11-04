@@ -262,7 +262,48 @@ app.put("/schools/:school/buses/:bus/location", authenticate("bus.location"), as
 
 app.get("/schools/:school/buses/:bus/stops", async (_, res, next) => {
   try {
-    res.json(await Models.Stop.find({bus_id: res.locals.bus._id}));
+    res.json((await Models.Stop.find({bus_id: res.locals.bus._id})).map(stop => {
+      stop.location = {longitude: stop.coords.coordinates[0], latitude: stop.coords.coordinates[1]};
+      return stop;
+    }));
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.get("/schools/:school/stops/nearby", async (req, res, next) => {
+  try {
+    const longitude = parseFloat(req.query.longitude);
+    const latitude  = parseFloat(req.query.latitude);
+
+    if (Number.isNaN(longitude) || Number.isNaN(latitude)) {
+      res.status(400).json({error: "invalid_coordinates"});
+    }
+
+    const maxDistance = parseInt(req.query.distance);
+
+    let nearQuery: {$geometry: {type: string, coordinates: number[]}, $maxDistance?: number} = {
+      $geometry: {
+        type: "Point",
+        coordinates: [longitude, latitude]
+      }
+    };
+
+    if (!Number.isNaN(maxDistance)) {
+      nearQuery.$maxDistance = maxDistance;
+    }
+
+    res.json((await Models.Stop.find({
+      bus_id: {
+        $in: (await Models.Bus.find({school_id: res.locals.school._id}).select("_id")).map(bus => bus._id)
+      },
+      coords: {
+        $nearSphere: nearQuery
+      }
+    }).limit(3)).map(stop => {
+      stop.location = {longitude: stop.coords.coordinates[0], latitude: stop.coords.coordinates[1]};
+      return stop;
+    }));
   } catch (e) {
     next(e);
   }
@@ -283,6 +324,7 @@ app.use("/schools/:school/buses/:bus/stops/:stop", async (req, res, next) => {
 
 app.get("/schools/:school/buses/:bus/stops/:stop", async (_, res, next) => {
   try {
+    res.locals.stop.location = {longitude: res.locals.stop.coords.coordinates[0], latitude: res.locals.stop.coords.coordinates[1]};
     res.json(res.locals.stop);
   } catch (e) {
     next(e);
@@ -338,7 +380,7 @@ app.patch("/schools/:school/buses/:bus/stops/:stop", authenticate("stop.update")
     try {
       await res.locals.stop.validate();
     } catch (e) {
-      return res.status(400).json({error: "bad_bus"});
+      return res.status(400).json({error: "bad_stop"});
     }
 
     await res.locals.stop.save();

@@ -17,6 +17,11 @@ export interface Coordinate {
   longitude: number;
 }
 
+export interface Point {
+  type: string;
+  coordinates: number[];
+}
+
 export interface School {
   _id: any;
   name?: string;
@@ -49,7 +54,8 @@ export interface Stop {
   bus_id: string;
   name?: string;
   description?: string;
-  location: Coordinate;
+  location?: Coordinate;
+  coords: Point;
   order?: number;
   arrival_time?: Date;
   invalidate_time?: Date;

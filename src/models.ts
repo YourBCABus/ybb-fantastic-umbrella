@@ -41,7 +41,7 @@ export namespace Models {
   }));
 
   export const Bus = model<BusModel>("Bus", new Schema({
-    school_id: {type: String, required: true},
+    school_id: {type: String, required: true, index: true},
     name: String,
     locations: [String],
     other_names: [String],
@@ -58,19 +58,25 @@ export namespace Models {
     source: {type: String, required: true}
   }));
 
-  export const Stop = model<StopModel>("Stop", new Schema({
-    bus_id: {type: String, required: true},
+  const stopSchema = new Schema({
+    bus_id: {type: String, required: true, index: true},
     name: String,
     description: String,
     location: {
-      latitude: {type: Number, required: true},
-      longitude: {type: Number, required: true}
+      latitude: Number,
+      longitude: Number
+    },
+    coords: {
+      type: {type: String, required: true},
+      coordinates: {type: [Number], required: true},
     },
     order: Number,
     arrival_time: Date,
     invalidate_time: Date,
     available: {type: Boolean, required: true, default: true}
-  }));
+  });
+  stopSchema.index({coords: "2dsphere"});
+  export const Stop = model<StopModel>("Stop", stopSchema);
 
   export const StopSuggestion = model<StopSuggestionModel>("StopSuggestion", new Schema({
     bus_id: {type: String, required: true},
