@@ -81,6 +81,7 @@ if (serviceAccount) {
 }
 
 const app = express();
+app.set("json spaces", "\t");
 app.use(json());
 
 app.use("/schools/:school", async (req, res, next) => {
