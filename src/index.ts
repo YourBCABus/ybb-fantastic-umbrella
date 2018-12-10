@@ -400,6 +400,36 @@ app.delete("/schools/:school/buses/:bus/stops/:stop", authenticate("stop.delete"
   }
 });
 
+app.post("/schools/:school/buses/:bus/stopsuggest", authenticate("stop.suggest"), async (req, res, next) => {
+  try {
+    if (!(req.body.location && (typeof req.body.location.latitude === "number" && typeof req.body.location.longitude === "number"))) {
+      return res.status(400).json({error: "bad_location"});
+    }
+
+    let time: Date;
+    if (req.body.time) {
+      time = new Date(req.body.time);
+
+      if (isNaN(time.getTime())) {
+        return res.status(400).json({error: "bad_time"});
+      }
+    }
+
+    let stopSuggestion = new Models.StopSuggestion({
+      bus_id: res.locals.bus._id,
+      time,
+      source: res.locals.auth.tokenHash,
+      location: req.body.location
+    });
+
+    await stopSuggestion.save();
+
+    res.json({ok: true});
+  } catch (e) {
+    next(e);
+  }
+});
+
 app.get("/schools/:school/auth", authenticate("auth"), async (req, res, next) => {
   try {
     return res.json(await Models.AuthToken.find({school_id: res.locals.school._id}));
