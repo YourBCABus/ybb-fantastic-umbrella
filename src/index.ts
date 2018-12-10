@@ -418,7 +418,7 @@ app.post("/schools/:school/buses/:bus/stopsuggest", authenticate("stop.suggest")
     let stopSuggestion = new Models.StopSuggestion({
       bus_id: res.locals.bus._id,
       time,
-      source: res.locals.auth.tokenHash,
+      source: res.locals.auth._id,
       location: req.body.location
     });
 
