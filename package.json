@@ -23,9 +23,11 @@
   },
   "dependencies": {
     "@types/body-parser": "^1.17.0",
+    "@types/cors": "^2.8.4",
     "@types/express": "^4.16.0",
     "@types/mongoose": "^5.2.19",
     "body-parser": "^1.18.3",
+    "cors": "^2.8.5",
     "express": "^4.16.4",
     "firebase-admin": "^6.1.0",
     "mongoose": "^5.3.4"

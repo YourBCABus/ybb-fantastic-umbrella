@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 
+import cors from 'cors';
 import express from 'express';
 import { json } from 'body-parser';
 import mongoose from 'mongoose';
@@ -82,6 +83,7 @@ if (serviceAccount) {
 
 const app = express();
 app.set("json spaces", "\t");
+app.use(cors());
 app.use(json());
 
 app.use("/schools/:school", async (req, res, next) => {
