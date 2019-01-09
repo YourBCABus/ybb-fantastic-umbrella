@@ -253,6 +253,13 @@ app.put("/schools/:school/buses/:bus/location", authenticate("bus.location"), as
           invalidate_time: invalidate_time.toJSON(),
           source: body.source,
           time: new Date().toJSON()
+        },
+        apns: {
+          payload: {
+            aps: {
+              sound: "default"
+            }
+          }
         }
       };
 
