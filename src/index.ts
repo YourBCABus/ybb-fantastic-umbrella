@@ -550,4 +550,8 @@ app.delete("/admin/:token", authenticate("admin"), async (req, res, next) => {
   }
 });
 
+app.get("/teapot", (_, res) => {
+  res.status(418).send("☕");
+});
+
 app.listen(config.port, config.bindTo);

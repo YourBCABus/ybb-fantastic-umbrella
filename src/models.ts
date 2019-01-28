@@ -48,7 +48,8 @@ export namespace Models {
     boarding_time: Date,
     departure_time: Date,
     invalidate_time: Date,
-    available: {type: Boolean, required: true, default: true}
+    available: {type: Boolean, required: true, default: true},
+    arrival_at_school: Number
   }));
 
   export const BusLocationHistory = model<BusLocationHistoryModel>("BusLocationHistory", new Schema({

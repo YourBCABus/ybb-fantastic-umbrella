@@ -39,6 +39,7 @@ export interface Bus {
   invalidate_time?: Date;
   available: boolean;
   other_names?: string[];
+  arrival_at_school?: number;
 }
 
 export interface BusLocationHistory {
