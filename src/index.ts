@@ -487,7 +487,7 @@ app.use("/schools/:school/auth/:token", authenticate("auth"), async (req, res, n
   }
 });
 
-app.delete("/schools/:school/auth/:token", async (_, res, next) => {
+app.delete("/schools/:school/auth/:token", authenticate("auth"), async (_, res, next) => {
   try {
     await res.locals.token.delete();
     res.json({ok: true});
