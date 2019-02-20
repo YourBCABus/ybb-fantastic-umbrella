@@ -2,6 +2,7 @@ export interface Permissions {
   bus?: {create?: boolean, update?: boolean, delete?: boolean, location?: boolean};
   stop?: {create?: boolean, update?: boolean, delete?: boolean, suggest?: boolean};
   auth?: boolean;
+  dismissal?: boolean;
 }
 
 export interface AuthToken extends Permissions {
@@ -27,6 +28,7 @@ export interface School {
   name?: string;
   location?: Coordinate;
   available: boolean;
+  timezone?: string;
 }
 
 export interface Bus {
@@ -69,4 +71,14 @@ export interface StopSuggestion {
   location: Coordinate;
   time?: Date;
   source?: string;
+}
+
+export interface DismissalRange {
+  _id: any;
+  school_id: string;
+  start_date: number;
+  end_date?: number;
+  dismissal_time?: number;
+  start_time?: number;
+  end_time?: number;
 }
