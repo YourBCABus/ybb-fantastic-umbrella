@@ -95,7 +95,7 @@ export namespace Models {
   export const DismissalRange = model<DismissalRangeModel>("DismissalRange", new Schema({
     school_id: {type: String, required: true, index: true},
     start_date: {type: Number, required: true},
-    end_date: Number,
+    end_date: {type: Number, required: true},
     dismissal_time: Number,
     start_time: Number,
     end_time: Number

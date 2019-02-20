@@ -77,7 +77,7 @@ export interface DismissalRange {
   _id: any;
   school_id: string;
   start_date: number;
-  end_date?: number;
+  end_date: number;
   dismissal_time?: number;
   start_time?: number;
   end_time?: number;
