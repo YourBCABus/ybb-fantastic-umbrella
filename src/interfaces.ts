@@ -36,12 +36,11 @@ export interface Bus {
   school_id: string;
   name?: string;
   locations?: string[];
-  boarding_time?: Date;
-  departure_time?: Date;
+  boarding?: number;
+  departure?: number;
   invalidate_time?: Date;
   available: boolean;
   other_names?: string[];
-  arrival_at_school?: number;
 }
 
 export interface BusLocationHistory {

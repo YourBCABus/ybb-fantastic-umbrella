@@ -48,8 +48,8 @@ export namespace Models {
     name: String,
     locations: [String],
     other_names: [String],
-    boarding_time: Date,
-    departure_time: Date,
+    boarding: Number,
+    departure: Number,
     invalidate_time: Date,
     available: {type: Boolean, required: true, default: true},
     arrival_at_school: Number
