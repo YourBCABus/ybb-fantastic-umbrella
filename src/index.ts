@@ -270,6 +270,19 @@ app.put("/schools/:school/buses/:bus/location", authenticate("bus.location"), as
   }
 });
 
+app.get("/schools/:school/buses/:bus/last10", async (_, res, next) => {
+  try {
+    res.json((await Models.BusLocationHistory.find({bus_id: res.locals.bus._id, "locations.0": {$exists: true}}).sort([["_id", -1]]).limit(10)).map(history => {
+      return {
+        locations: history.locations,
+        time: history.time || new Date(parseInt(history._id.substring(0, 8), 16) * 1000)
+      }
+    }));
+  } catch (e) {
+    next(e);
+  }
+});
+
 app.get("/schools/:school/buses/:bus/stops", async (_, res, next) => {
   try {
     res.json((await Models.Stop.find({bus_id: res.locals.bus._id})).map(stop => {
