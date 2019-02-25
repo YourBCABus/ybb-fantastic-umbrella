@@ -81,4 +81,5 @@ export interface DismissalRange {
   dismissal_time?: number;
   start_time?: number;
   end_time?: number;
+  days_of_week: number[];
 }

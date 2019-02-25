@@ -98,6 +98,7 @@ export namespace Models {
     end_date: {type: Number, required: true},
     dismissal_time: Number,
     start_time: Number,
-    end_time: Number
+    end_time: Number,
+    days_of_week: {type: [Number], required: true}
   }));
 }
