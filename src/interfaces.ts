@@ -1,3 +1,19 @@
+import {Application} from "express";
+import {ServiceAccount} from "firebase-admin";
+
+export interface Config {
+  mongo: string;
+  notification: {text: string, title: string};
+  port: number;
+  bindTo: string;
+}
+
+export interface ServerProviderArguments {
+  app: Application;
+  config: Config;
+  serviceAccount?: ServiceAccount;
+}
+
 export interface Permissions {
   bus?: {create?: boolean, update?: boolean, delete?: boolean, location?: boolean};
   stop?: {create?: boolean, update?: boolean, delete?: boolean, suggest?: boolean};
