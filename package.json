@@ -31,5 +31,6 @@
     "express": "^4.16.4",
     "firebase-admin": "^6.1.0",
     "mongoose": "^5.3.4"
-  }
+  },
+  "keywords": []
 }
