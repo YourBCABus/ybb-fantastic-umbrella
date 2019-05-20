@@ -1,6 +1,6 @@
 import { model, Schema, Document } from 'mongoose';
 
-import { AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, DismissalRange } from './interfaces';
+import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, DismissalRange, Alert} from './interfaces';
 
 export interface AuthTokenModel extends Document, AuthToken {}
 export interface SchoolModel extends Document, School {}
@@ -9,6 +9,7 @@ export interface BusLocationHistoryModel extends Document, BusLocationHistory {}
 export interface StopModel extends Document, Stop {}
 export interface StopSuggestionModel extends Document, StopSuggestion {}
 export interface DismissalRangeModel extends Document, DismissalRange {}
+export interface AlertModel extends Document, Alert {}
 
 export namespace Models {
   export const AuthToken = model<AuthTokenModel>("AuthToken", new Schema({
@@ -30,7 +31,8 @@ export namespace Models {
       arrivalTimes: Boolean
     },
     auth: Boolean,
-    dismissal: Boolean
+    dismissal: Boolean,
+    alerts: Boolean
   }));
 
   export const School = model<SchoolModel>("School", new Schema({
@@ -101,4 +103,34 @@ export namespace Models {
     end_time: Number,
     days_of_week: {type: [Number], required: true}
   }));
+
+  const alertSchema = new Schema({
+    school_id: {type: String, required: true, index: true},
+    start_date: {type: Number, required: true, default: 0},
+    end_date: {type: Number, required: true},
+    type: {
+      name: {type: String, required: true},
+      color: {
+        name: String,
+        r: {type: Number, required: true, default: 0},
+        g: {type: Number, required: true, default: 0},
+        b: {type: Number, required: true, default: 0},
+        alpha: {type: Number, required: true},
+        appearances: {
+          type: Map,
+          of: {
+            r: {type: Number, required: true},
+            g: {type: Number, required: true},
+            b: {type: Number, required: true},
+            alpha: {type: Number, required: true}
+          }
+        }
+      }
+    },
+    title: {type: String, required: true},
+    content: {type: String, required: true},
+    data: Schema.Types.Mixed,
+    can_dismiss: {type: Boolean, required: true, default: true}
+  });
+  export const Alert = model<AlertModel>("Alert", alertSchema);
 }

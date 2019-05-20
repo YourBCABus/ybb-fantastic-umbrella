@@ -19,6 +19,7 @@ export interface Permissions {
   stop?: {create?: boolean, update?: boolean, delete?: boolean, suggest?: boolean};
   auth?: boolean;
   dismissal?: boolean;
+  alerts?: boolean;
 }
 
 export interface AuthToken extends Permissions {
@@ -97,4 +98,30 @@ export interface DismissalRange {
   start_time?: number;
   end_time?: number;
   days_of_week: number[];
+}
+
+export interface Color {
+  name?: string;
+  r: number;
+  g: number;
+  b: number;
+  alpha: number;
+  appearances?: Record<string, {r: number, g: number, b: number, alpha: number}>;
+}
+
+export interface Alert {
+  _id: any;
+  school_id: string;
+  start_date: number;
+  end_date: number;
+  type: AlertType;
+  title: string;
+  content: string;
+  data: any;
+  can_dismiss: boolean;
+}
+
+export interface AlertType {
+  name: string;
+  color: Color;
 }
