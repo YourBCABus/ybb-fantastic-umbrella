@@ -14,6 +14,7 @@ import busEndpoints from './buses';
 import stopEndpoints from './stops';
 import dismissalEndpoints from './dismissal';
 import authManagementEndpoints from './authmanagement';
+import alertEndpoints from './alerts';
 
 export interface BusLocationUpdateRequest {
   locations: string[];
@@ -51,7 +52,8 @@ app.use(json());
   busEndpoints,
   stopEndpoints,
   dismissalEndpoints,
-  authManagementEndpoints
+  authManagementEndpoints,
+  alertEndpoints
 ].forEach(fn => fn({app, config, serviceAccount}));
 
 app.get("/teapot", (_, res) => {
