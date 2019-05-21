@@ -17,7 +17,7 @@ export default ({app}: ServerProviderArguments) => {
         return res.status(400).json({error: "bad_alert_id"});
       }
 
-      res.locals.alert = await Models.DismissalRange.findOne({school_id: res.locals.school._id, _id: req.params.alert});
+      res.locals.alert = await Models.Alert.findOne({school_id: res.locals.school._id, _id: req.params.alert});
       return res.locals.alert ? next() : res.status(404).json({error: "alert_not_found"});
     } catch (e) {
       next(e);
