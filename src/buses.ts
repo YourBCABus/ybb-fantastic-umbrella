@@ -142,7 +142,7 @@ export default ({app, config, serviceAccount}: ServerProviderArguments) => {
       res.json({ok: true});
 
       if (serviceAccount && body.locations.length > 0) {
-        console.log("Sending message over FCM...");
+        console.log(`Sending message over FCM for ${res.locals.bus.name}.`);
 
         let message = {
           topic: `school.${res.locals.school._id}.bus.${res.locals.bus._id}`,
@@ -166,7 +166,7 @@ export default ({app, config, serviceAccount}: ServerProviderArguments) => {
           }
         };
 
-        admin.messaging().send(message as any).then(_ => console.log("Successfully sent."));
+        admin.messaging().send(message as any).then(_ => console.log(`Successfully sent for ${res.locals.bus.name}.`));
       }
     } catch (e) {
       next(e);
