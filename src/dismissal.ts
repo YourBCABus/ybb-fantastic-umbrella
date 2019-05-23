@@ -3,12 +3,38 @@ import {Models} from "./models";
 import {authenticate, isValidId} from "./utils";
 
 export default ({app}: ServerProviderArguments) => {
+  app.get("/schools/:school/dismissal", async (req, res, next) => {
+    let date = parseInt(req.query.date);
+
+    if (Number.isNaN(date)) {
+      return res.status(400).json({error: "bad_date"});
+    }
+
+    let range = await Models.DismissalRange.findOne({
+      school_id: res.locals.school._id,
+      end_date: {$gte: date},
+      start_date: {$lte: date},
+      days_of_week: new Date(date * 1000).getUTCDay()
+    }).sort("start_date");
+
+    res.json(range ? {
+      ok: true,
+      found: true,
+      dismissal_time: range.dismissal_time,
+      start_time: range.start_time,
+      end_time: range.end_time
+    } : {
+      ok: true,
+      found: false
+    });
+  });
+
   app.get("/schools/:school/dismissal/ranges", async (req, res, next) => {
     try {
       let query: any = {school_id: res.locals.school._id};
 
-      if (query.date) {
-        if (Number.isNaN(parseInt(query.date))) {
+      if (req.query.date) {
+        if (Number.isNaN(parseInt(req.query.date))) {
           res.status(400).json({error: "bad_date"});
         }
         query.end_date = {$gte: parseInt(req.query.date)};
