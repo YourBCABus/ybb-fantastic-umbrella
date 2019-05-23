@@ -21,6 +21,7 @@ export default ({app}: ServerProviderArguments) => {
       ok: true,
       found: true,
       dismissal_time: range.dismissal_time,
+      departure_time: range.departure_time,
       start_time: range.start_time,
       end_time: range.end_time
     } : {
