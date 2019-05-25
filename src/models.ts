@@ -99,6 +99,7 @@ export namespace Models {
     start_date: {type: Number, required: true},
     end_date: {type: Number, required: true},
     dismissal_time: Number,
+    departure_time: Number,
     start_time: Number,
     end_time: Number,
     days_of_week: {type: [Number], required: true}
