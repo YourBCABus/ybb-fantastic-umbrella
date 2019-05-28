@@ -58,6 +58,8 @@ export interface Bus {
   invalidate_time?: Date;
   available: boolean;
   other_names?: string[];
+  company?: string;
+  phone?: string[];
 }
 
 export interface BusLocationHistory {
