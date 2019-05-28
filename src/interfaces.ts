@@ -60,6 +60,7 @@ export interface Bus {
   other_names?: string[];
   company?: string;
   phone?: string[];
+  numbers?: number[];
 }
 
 export interface BusLocationHistory {
