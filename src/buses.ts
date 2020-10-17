@@ -173,6 +173,26 @@ export default ({app, config, serviceAccount}: ServerProviderArguments) => {
     }
   });
 
+  app.put("/schools/:school/buses/:bus/departure", authenticate("bus.location"), async (req, res, next) => {
+    try {
+      let body: {departure: number} = req.body;
+      if (typeof body.departure === "number") {
+        if (body.departure < 0 || body.departure > 24 * 60 * 60) {
+          return res.status(400).json({error: "invalid_departure"});
+        }
+      } else if (typeof body.departure !== "undefined") {
+        return res.status(400).json({error: "invalid_departure"});
+      }
+
+      res.locals.bus.set({departure: body.departure});
+      await res.locals.bus.save();
+
+      res.json({ok: true});
+    } catch (e) {
+      next(e);
+    }
+  });
+
   app.get("/schools/:school/buses/:bus/last10", async (_, res, next) => {
     try {
       res.json((await Models.BusLocationHistory.find({bus_id: res.locals.bus._id, "locations.0": {$exists: true}}).sort([["_id", -1]]).limit(10)).map(history => {
