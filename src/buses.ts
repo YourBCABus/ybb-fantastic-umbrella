@@ -4,7 +4,7 @@ import {authenticate, isValidId} from "./utils";
 import * as admin from "firebase-admin";
 import {BusLocationUpdateRequest} from "./index";
 
-let processNotificationText = (text: string, bus: Bus) => {
+export const processNotificationText = (text: string, bus: Bus) => {
   let location = (bus.locations && bus.locations.length > 0) ? bus.locations[0] : "?";
   let result = text.replace(/\${name}/gi, bus.name || "").replace(/\${location}/gi, location);
   if (typeof bus.departure !== "undefined") {
