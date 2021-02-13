@@ -1,0 +1,115 @@
+type Query {
+    school(id: ID!): School
+    bus(id: ID!): Bus
+    stop(id: ID!): Stop
+    alert(id: ID!): Alert
+    dismissalData(id: ID!): DismissalTimeData
+}
+
+scalar DateTime
+scalar Time
+
+type Location {
+    lat: Float!
+    long: Float!
+}
+
+type School {
+    id: ID!
+    name: String
+    location: Location
+    available: Boolean!
+
+    buses: [Bus!]!
+    currentDismissal: DismissalTimeData
+    dismissalTimeData: [DismissalTimeData!]!
+    alerts: [Alert!]!
+}
+
+type LocationHistoryEntry {
+    busID: ID!
+    bus: Bus!
+    locations: [String!]!
+    time: DateTime
+    source: String!
+}
+
+type Bus {
+    id: ID!
+    schoolID: ID!
+    school: School!
+    locations: [String!]!
+    otherNames: [String!]!
+    boardingTime: DateTime
+    departureTime: DateTime
+    invalidateTime: DateTime
+    available: Boolean!
+    name: String
+    company: String
+    phone: [String!]!
+    numbers: [String!]!
+
+    recentHistory: [LocationHistoryEntry!]!
+    stops: [Stop!]!
+}
+
+type Stop {
+    id: ID!
+    busID: ID!
+    schoolID: ID!
+    bus: Bus!
+    school: School!
+    name: String
+    description: String
+    location: Location
+    order: Float
+    arrivalTime: DateTime
+    invalidateTime: DateTime
+    available: Boolean!
+}
+
+type DismissalTimeData {
+    id: ID!
+    schoolID: ID!
+    school: School!
+    startDate: DateTime!
+    endDate: DateTime!
+    dismissalTime: Time
+    alertStartTime: Time
+    alertEndTime: Time
+    daysOfWeek: [Int!]!
+}
+
+type AlertAppearanceColor {
+    appearance: String!
+    r: Int!
+    g: Int!
+    b: Int!
+}
+
+type AlertColor {
+    name: String!
+    r: Int!
+    g: Int!
+    b: Int!
+    alpha: Int!
+    appearances: [AlertAppearanceColor!]!
+    color(appearance: String!): AlertAppearanceColor
+}
+
+type AlertType {
+    name: String!
+    color: AlertColor
+}
+
+type Alert {
+    id: ID!
+    schoolID: ID!
+    school: School!
+    start: DateTime!
+    end: DateTime!
+    type: AlertType
+    title: String!
+    content: String!
+    dismissable: Boolean!
+}

@@ -6,6 +6,7 @@ import express from 'express';
 import { json } from 'body-parser';
 import mongoose from 'mongoose';
 import * as admin from 'firebase-admin';
+import { ApolloServer, gql } from 'apollo-server-express';
 
 import {Config} from './interfaces';
 
@@ -15,6 +16,7 @@ import stopEndpoints from './stops';
 import dismissalEndpoints from './dismissal';
 import authManagementEndpoints from './authmanagement';
 import alertEndpoints from './alerts';
+import resolvers from './resolvers';
 
 export interface BusLocationUpdateRequest {
   locations: string[];
@@ -34,13 +36,17 @@ try {
   console.log("Push notifications will not be sent.")
 }
 
-mongoose.connect(config.mongo);
+const typeDefs = gql(fs.readFileSync(path.join(__dirname, "../yourbcabus.graphql"), "utf8"));
+
+mongoose.connect(config.mongo, {useNewUrlParser: true, useUnifiedTopology: true});
 
 if (serviceAccount) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
 }
+
+const server = new ApolloServer({typeDefs, resolvers, introspection: true});
 
 const app = express();
 app.set("json spaces", "\t");
@@ -59,5 +65,7 @@ app.use(json());
 app.get("/teapot", (_, res) => {
   res.status(418).send("☕");
 });
+
+server.applyMiddleware({app});
 
 app.listen(config.port, config.bindTo);
