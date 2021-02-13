@@ -24,6 +24,8 @@ type School {
     currentDismissal: DismissalTimeData
     dismissalTimeData: [DismissalTimeData!]!
     alerts: [Alert!]!
+    
+    timeZone: String
 }
 
 type LocationHistoryEntry {
