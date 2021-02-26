@@ -2,6 +2,7 @@ import { IResolvers, UserInputError } from 'apollo-server-express';
 import { School, Bus, Stop, Coordinate, BusLocationHistory, Alert, Color, DismissalRange } from './interfaces';
 import { Models } from './models';
 import { isValidId } from './utils';
+import Scalars from './datehandling';
 
 function processLocation(location?: Coordinate) {
     return location && {lat: location.latitude, long: location.longitude};
@@ -27,7 +28,8 @@ function processBus(bus?: Bus) {
         name: bus.name,
         company: bus.company,
         phone: bus.phone,
-        numbers: bus.numbers
+        numbers: bus.numbers,
+        invalidateTime: bus.invalidate_time
     };
 }
 
@@ -47,7 +49,9 @@ function processStop(stop?: Stop) {
         description: stop.description,
         location: processLocation(stop.location),
         order: stop.order,
-        available: stop.available
+        available: stop.available,
+        arrivalTime: stop.arrival_time,
+        invalidateTime: stop.invalidate_time
     };
 }
 
@@ -58,7 +62,9 @@ function processAlert(alert?: Alert) {
         type: alert.type,
         title: alert.title,
         content: alert.content,
-        dismissable: alert.can_dismiss
+        dismissable: alert.can_dismiss,
+        start: new Date(alert.start_date * 1000),
+        end: new Date(alert.end_date * 1000)
     };
 }
 
@@ -66,11 +72,18 @@ function processDismissalData(data?: DismissalRange) {
     return {
         id: data._id,
         schoolID: data.school_id,
-        daysOfWeek: data.days_of_week
+        daysOfWeek: data.days_of_week,
+        startDate: new Date(data.start_date * 1000),
+        endDate: new Date(data.end_date * 1000),
+        dismissalTime: data.dismissal_time,
+        alertStartTime: data.start_time,
+        alertEndTime: data.end_time
     };
 }
 
 const resolvers: IResolvers<any, any> = {
+    DateTime: Scalars.DateTime,
+    Time: Scalars.Time,
     Query: {
         async school(_, {id}: {id: string}) {
             if (!isValidId(id)) throw new UserInputError("bad_school_id");

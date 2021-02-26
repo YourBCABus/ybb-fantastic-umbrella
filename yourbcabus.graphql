@@ -51,8 +51,6 @@ type Bus {
     school: School! @cost(complexity: 4)
     locations: [String!]!
     otherNames: [String!]!
-    boardingTime: DateTime
-    departureTime: DateTime
     invalidateTime: DateTime
     available: Boolean!
     name: String
