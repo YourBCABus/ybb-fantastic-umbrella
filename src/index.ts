@@ -51,7 +51,7 @@ const server = new ApolloServer({typeDefs, resolvers, introspection: true, valid
   costAnalysis({
     maximumCost: 50
   })
-]});
+], playground: true});
 
 const app = express();
 app.set("json spaces", "\t");
