@@ -123,7 +123,7 @@ const resolvers: IResolvers<any, any> = {
                 school_id: id,
                 end_date: {$gte: Math.floor(date.getTime() / 1000)},
                 start_date: {$lte: Math.floor(date.getTime() / 1000)},
-                days_fo_week: date.getUTCDay() // HACK: Better timezone support
+                days_of_week: date.getUTCDay() // HACK: Better timezone support
             }));
         },
         async allDismissalTimeData({id}: {id: string}) {
