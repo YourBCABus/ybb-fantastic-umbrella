@@ -1,4 +1,4 @@
-import { GraphQLScalarType } from 'graphql';
+import { GraphQLScalarType, Kind } from 'graphql';
 
 namespace Scalars {
     export const DateTime = new GraphQLScalarType({
@@ -6,6 +6,25 @@ namespace Scalars {
         description: "A date with an associated time, given in ISO 8601 format.",
         serialize(value: Date) {
             return value.toISOString();
+        },
+        parseValue(date: string | number) {
+            if (typeof date === "number") {
+                return new Date(date * 1000);
+            }
+
+            const parsed = new Date(date);
+            if (Number.isNaN(parsed.getTime())) {
+                return null;
+            }
+            return date;
+        },
+        parseLiteral(ast) {
+            if (ast.kind === Kind.STRING) {
+                return new Date(ast.value);
+            } else if (ast.kind === Kind.INT) {
+                return new Date(parseInt(ast.value, 10) * 1000);
+            }
+            return null;
         }
     });
 

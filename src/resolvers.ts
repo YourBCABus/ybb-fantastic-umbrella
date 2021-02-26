@@ -36,6 +36,7 @@ function processBus(bus?: Bus) {
 function processHistoryEntry(entry?: BusLocationHistory) {
     return entry && {
         busID: entry.bus_id,
+        time: entry.time,
         locations: entry.locations,
         source: entry.source
     };
@@ -116,7 +117,16 @@ const resolvers: IResolvers<any, any> = {
         async alerts({id}: {id: string}) {
             return (await Models.Alert.find({school_id: id})).map(alert => processAlert(alert));
         },
-        async dismissalTimeData({id}: {id: string}) {
+        async dismissalTimeData({id}: {id: string}, {date: inputDate}: {date?: Date}) {
+            const date = inputDate || new Date();
+            return processDismissalData(await Models.DismissalRange.findOne({
+                school_id: id,
+                end_date: {$gte: Math.floor(date.getTime() / 1000)},
+                start_date: {$lte: Math.floor(date.getTime() / 1000)},
+                days_fo_week: date.getUTCDay() // HACK: Better timezone support
+            }));
+        },
+        async allDismissalTimeData({id}: {id: string}) {
             return (await Models.DismissalRange.find({school_id: id})).map(data => processDismissalData(data));
         }
     },

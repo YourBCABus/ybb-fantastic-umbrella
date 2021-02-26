@@ -31,8 +31,8 @@ type School {
 
     buses: [Bus!]! @cost(complexity: 4)
     alerts: [Alert!]! @cost(complexity: 4)
-    currentDismissal: DismissalTimeData @cost(complexity: 3)
-    dismissalTimeData: [DismissalTimeData!]! @cost(complexity: 4)
+    dismissalTimeData(date: DateTime): DismissalTimeData @cost(complexity: 3)
+    allDismissalTimeData: [DismissalTimeData!]! @cost(complexity: 4)
     
     timeZone: String
 }
