@@ -19,10 +19,14 @@ namespace Scalars {
             return date;
         },
         parseLiteral(ast) {
+            let parsed: Date;
             if (ast.kind === Kind.STRING) {
-                return new Date(ast.value);
+                parsed = new Date(ast.value);
             } else if (ast.kind === Kind.INT) {
-                return new Date(parseInt(ast.value, 10) * 1000);
+                parsed = new Date(parseInt(ast.value, 10) * 1000);
+            }
+            if (parsed && !Number.isNaN(parsed.getTime())) {
+                return parsed;
             }
             return null;
         }
