@@ -110,7 +110,7 @@ export interface Color {
   g: number;
   b: number;
   alpha: number;
-  appearances?: Record<string, {r: number, g: number, b: number, alpha: number}>;
+  appearances?: Record<string, {name?: string, r: number, g: number, b: number, alpha: number}>;
 }
 
 export interface Alert {

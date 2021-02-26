@@ -30,6 +30,7 @@
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "firebase-admin": "^9.5.0",
+    "graphql-cost-analysis": "^1.0.3",
     "mongoose": "^5.11.16"
   },
   "keywords": []

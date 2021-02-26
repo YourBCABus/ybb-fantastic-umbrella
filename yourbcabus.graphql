@@ -1,9 +1,18 @@
+# GraphQL Cost Analysis
+directive @cost(
+    multipliers: [String!],
+    useMultipliers: Boolean,
+    complexity: Int
+) on OBJECT | FIELD_DEFINITION
+
 type Query {
-    school(id: ID!): School
-    bus(id: ID!): Bus
-    stop(id: ID!): Stop
-    alert(id: ID!): Alert
-    dismissalData(id: ID!): DismissalTimeData
+    school(id: ID!): School @cost(complexity: 2)
+    bus(id: ID!): Bus @cost(complexity: 2)
+    stop(id: ID!): Stop @cost(complexity: 2)
+    alert(id: ID!): Alert @cost(complexity: 2)
+    dismissalTimeData(id: ID!): DismissalTimeData @cost(complexity: 2)
+
+    bca: School @deprecated(reason: "Use school(id) instead.") @cost(complexity: 2)
 }
 
 scalar DateTime
@@ -20,17 +29,17 @@ type School {
     location: Location
     available: Boolean!
 
-    buses: [Bus!]!
-    currentDismissal: DismissalTimeData
-    dismissalTimeData: [DismissalTimeData!]!
-    alerts: [Alert!]!
+    buses: [Bus!]! @cost(complexity: 4)
+    alerts: [Alert!]! @cost(complexity: 4)
+    currentDismissal: DismissalTimeData @cost(complexity: 3)
+    dismissalTimeData: [DismissalTimeData!]! @cost(complexity: 4)
     
     timeZone: String
 }
 
 type LocationHistoryEntry {
     busID: ID!
-    bus: Bus!
+    bus: Bus! @cost(complexity: 4)
     locations: [String!]!
     time: DateTime
     source: String!
@@ -39,7 +48,7 @@ type LocationHistoryEntry {
 type Bus {
     id: ID!
     schoolID: ID!
-    school: School!
+    school: School! @cost(complexity: 4)
     locations: [String!]!
     otherNames: [String!]!
     boardingTime: DateTime
@@ -51,16 +60,14 @@ type Bus {
     phone: [String!]!
     numbers: [String!]!
 
-    recentHistory: [LocationHistoryEntry!]!
-    stops: [Stop!]!
+    recentHistory: [LocationHistoryEntry!]! @cost(complexity: 4)
+    stops: [Stop!]! @cost(complexity: 4)
 }
 
 type Stop {
     id: ID!
     busID: ID!
-    schoolID: ID!
-    bus: Bus!
-    school: School!
+    bus: Bus! @cost(complexity: 4)
     name: String
     description: String
     location: Location
@@ -73,7 +80,7 @@ type Stop {
 type DismissalTimeData {
     id: ID!
     schoolID: ID!
-    school: School!
+    school: School! @cost(complexity: 4)
     startDate: DateTime!
     endDate: DateTime!
     dismissalTime: Time
@@ -84,30 +91,39 @@ type DismissalTimeData {
 
 type AlertAppearanceColor {
     appearance: String!
+    name: String
+    r: Int!
+    g: Int!
+    b: Int!
+}
+
+type ResolvedColor {
+    appearance: String
+    name: String
     r: Int!
     g: Int!
     b: Int!
 }
 
 type AlertColor {
-    name: String!
+    name: String
     r: Int!
     g: Int!
     b: Int!
     alpha: Int!
     appearances: [AlertAppearanceColor!]!
-    color(appearance: String!): AlertAppearanceColor
+    color(appearance: String!): ResolvedColor!
 }
 
 type AlertType {
-    name: String!
+    name: String
     color: AlertColor
 }
 
 type Alert {
     id: ID!
     schoolID: ID!
-    school: School!
+    school: School! @cost(complexity: 4)
     start: DateTime!
     end: DateTime!
     type: AlertType

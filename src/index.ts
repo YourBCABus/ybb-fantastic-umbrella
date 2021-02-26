@@ -7,6 +7,7 @@ import { json } from 'body-parser';
 import mongoose from 'mongoose';
 import * as admin from 'firebase-admin';
 import { ApolloServer, gql } from 'apollo-server-express';
+import costAnalysis from 'graphql-cost-analysis';
 
 import {Config} from './interfaces';
 
@@ -46,7 +47,11 @@ if (serviceAccount) {
   });
 }
 
-const server = new ApolloServer({typeDefs, resolvers, introspection: true});
+const server = new ApolloServer({typeDefs, resolvers, introspection: true, validationRules: [
+  costAnalysis({
+    maximumCost: 50
+  })
+]});
 
 const app = express();
 app.set("json spaces", "\t");

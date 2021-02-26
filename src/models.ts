@@ -114,6 +114,7 @@ export namespace Models {
         appearances: {
           type: Map,
           of: {
+            name: String,
             r: {type: Number, required: true},
             g: {type: Number, required: true},
             b: {type: Number, required: true},
