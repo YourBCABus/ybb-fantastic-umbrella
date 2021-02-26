@@ -4,6 +4,10 @@ import {authenticate, isValidId} from "./utils";
 
 export default ({app}: ServerProviderArguments) => {
   app.get("/schools/:school/dismissal", async (req, res, next) => {
+    if (typeof req.query.date !== "string") {
+      return res.status(400).json({error: "bad_date"});
+    }
+
     let date = parseInt(req.query.date);
 
     if (Number.isNaN(date)) {
@@ -35,6 +39,9 @@ export default ({app}: ServerProviderArguments) => {
       let query: any = {school_id: res.locals.school._id};
 
       if (req.query.date) {
+        if (typeof req.query.date !== "string") {
+          return res.status(400).json({ error: "bad_date" });
+        }
         if (Number.isNaN(parseInt(req.query.date))) {
           res.status(400).json({error: "bad_date"});
         }

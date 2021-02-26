@@ -16,14 +16,16 @@ export default ({app}: ServerProviderArguments) => {
 
   app.get("/schools/:school/stops/nearby", async (req, res, next) => {
     try {
+      if (typeof req.query.longitude !== "string" || typeof req.query.latitude !== "string") {
+        return res.status(400).json({ error: "invalid_coordinates" });
+      }
+
       const longitude = parseFloat(req.query.longitude);
       const latitude  = parseFloat(req.query.latitude);
 
       if (Number.isNaN(longitude) || Number.isNaN(latitude)) {
-        res.status(400).json({error: "invalid_coordinates"});
+        return res.status(400).json({error: "invalid_coordinates"});
       }
-
-      const maxDistance = parseInt(req.query.distance);
 
       let nearQuery: {$geometry: {type: string, coordinates: number[]}, $maxDistance?: number} = {
         $geometry: {
@@ -32,8 +34,11 @@ export default ({app}: ServerProviderArguments) => {
         }
       };
 
-      if (!Number.isNaN(maxDistance)) {
-        nearQuery.$maxDistance = maxDistance;
+      if (req.query.distance && typeof req.query.distance === "string") {
+        const maxDistance = parseInt(req.query.distance);
+        if (!Number.isNaN(maxDistance)) {
+          nearQuery.$maxDistance = maxDistance;
+        }
       }
 
       res.json((await Models.Stop.find({
