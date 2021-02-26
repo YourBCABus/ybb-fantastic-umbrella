@@ -70,7 +70,7 @@ function processAlert(alert?: Alert) {
 }
 
 function processDismissalData(data?: DismissalRange) {
-    return {
+    return data && {
         id: data._id,
         schoolID: data.school_id,
         daysOfWeek: data.days_of_week,
