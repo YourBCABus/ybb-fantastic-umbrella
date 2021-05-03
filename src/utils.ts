@@ -3,6 +3,8 @@ import crypto from "crypto";
 import { Models } from "./models";
 
 export const isValidId = (id: string) => id && id.match(/^[0-9a-fA-F]{24}$/);
+
+/** @deprecated */
 export const authenticate = (permission?: string) => {
   let components = permission && permission.split(".");
   return async (req: Request, res: Response, next: NextFunction) => {

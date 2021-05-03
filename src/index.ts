@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import * as admin from 'firebase-admin';
 import { ApolloServer, gql } from 'apollo-server-express';
 import costAnalysis from 'graphql-cost-analysis';
+import exphbs from 'express-handlebars';
 
 import {Config} from './interfaces';
 
@@ -16,6 +17,7 @@ import busEndpoints from './buses';
 import stopEndpoints from './stops';
 import dismissalEndpoints from './dismissal';
 import alertEndpoints from './alerts';
+import makeAuthRoutes from './auth/routes';
 import resolvers from './resolvers';
 
 export interface BusLocationUpdateRequest {
@@ -53,8 +55,10 @@ const server = new ApolloServer({typeDefs, resolvers, introspection: true, valid
 ], playground: true});
 
 const app = express();
+app.engine("hbs", exphbs({extname: ".hbs"}));
+app.set("view engine", "hbs");
 app.set("json spaces", "\t");
-app.use(cors());
+app.use("/schools", cors());
 app.use(json());
 
 [
@@ -65,10 +69,14 @@ app.use(json());
   alertEndpoints
 ].forEach(fn => fn({app, config, serviceAccount}));
 
+app.use("/auth", makeAuthRoutes(config));
+
 app.get("/teapot", (_, res) => {
   res.status(418).send("☕");
 });
 
 server.applyMiddleware({app});
+
+app.use("/static", express.static(path.join(__dirname, "../static")));
 
 app.listen(config.port, config.bindTo);

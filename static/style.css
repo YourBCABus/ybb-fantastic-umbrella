@@ -1,0 +1,16 @@
+html {
+    background-color: #004C40;
+    height: 100%;
+}
+
+body {
+    background-color: #004C40;
+    width: 100%;
+    min-height: 100%;
+    background-image: linear-gradient(135deg, #00796B, #004C40);
+    color: white;
+}
+
+.container {
+    min-height: 100vh;
+}
