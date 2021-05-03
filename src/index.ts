@@ -15,7 +15,6 @@ import schoolEndpoints from './schools';
 import busEndpoints from './buses';
 import stopEndpoints from './stops';
 import dismissalEndpoints from './dismissal';
-import authManagementEndpoints from './authmanagement';
 import alertEndpoints from './alerts';
 import resolvers from './resolvers';
 
@@ -63,7 +62,6 @@ app.use(json());
   busEndpoints,
   stopEndpoints,
   dismissalEndpoints,
-  authManagementEndpoints,
   alertEndpoints
 ].forEach(fn => fn({app, config, serviceAccount}));
 
