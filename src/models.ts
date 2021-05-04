@@ -1,8 +1,13 @@
 import { model, Schema, Document } from 'mongoose';
 
-import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, DismissalRange, Alert} from './interfaces';
+import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, DismissalRange, Alert, User} from './interfaces';
 
 export namespace Models {
+  export const User = model<User & Document>("User", new Schema({
+    google_id: {type: String, unique: true},
+    email: String
+  }));
+
   /** @deprecated */
   export const AuthToken = model<AuthToken & Document>("AuthToken", new Schema({
     tokenHash: {type: String, required: true, unique: true},

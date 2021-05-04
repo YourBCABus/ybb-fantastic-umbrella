@@ -9,6 +9,8 @@ export interface Config {
   port: number;
   bindTo: string;
   google: GoogleConfig;
+  stateTokenSecret: string;
+  stateTokenDomain?: string;
 }
 
 export interface ServerProviderArguments {
@@ -37,7 +39,7 @@ export interface AuthToken extends Permissions {
 
 export interface User {
   _id: ObjectId;
-  google_id: string;
+  google_id?: string;
   email: string;
 }
 
