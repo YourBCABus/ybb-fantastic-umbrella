@@ -19,6 +19,7 @@ import dismissalEndpoints from './dismissal';
 import alertEndpoints from './alerts';
 import makeAuthRoutes from './auth/routes';
 import resolvers from './resolvers';
+import makeProvider from './auth/provider';
 
 export interface BusLocationUpdateRequest {
   locations: string[];
@@ -69,7 +70,8 @@ app.use(json());
   alertEndpoints
 ].forEach(fn => fn({app, config, serviceAccount}));
 
-app.use("/auth", makeAuthRoutes(config));
+const provider = makeProvider(config);
+app.use("/auth", makeAuthRoutes(config, provider));
 
 app.get("/teapot", (_, res) => {
   res.status(418).send("☕");
@@ -78,5 +80,7 @@ app.get("/teapot", (_, res) => {
 server.applyMiddleware({app});
 
 app.use("/static", express.static(path.join(__dirname, "../static")));
+
+app.use(provider.callback());
 
 app.listen(config.port, config.bindTo);

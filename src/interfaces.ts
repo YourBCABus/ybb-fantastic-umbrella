@@ -1,6 +1,7 @@
 import {Application} from "express";
 import {ServiceAccount} from "firebase-admin";
 import { ObjectId } from "mongoose";
+import { ClientMetadata, JWK } from "oidc-provider";
 import {GoogleConfig} from "./auth/google";
 
 export interface Config {
@@ -11,6 +12,10 @@ export interface Config {
   google: GoogleConfig;
   stateTokenSecret: string;
   stateTokenDomain?: string;
+  authIssuer: string;
+  authClients: ClientMetadata[];
+  authCookieKeys: string[];
+  authJWKKeys: JWK[];
 }
 
 export interface ServerProviderArguments {

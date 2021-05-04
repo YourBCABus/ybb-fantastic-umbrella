@@ -6,6 +6,7 @@ import { promisify } from 'util';
 import { sign, verify } from 'jsonwebtoken';
 import { randomBytes } from 'crypto';
 import cookieParser from 'cookie-parser';
+import { Provider } from 'oidc-provider';
 
 const random = promisify(randomBytes);
 
@@ -52,16 +53,34 @@ async function verifyState(state: string, secret: string): Promise<{isValid: boo
     return {isValid: true, redirectURI: data.redirectURI}
 }
 
-export default function makeAuthRoutes(config: Config) {
+export default function makeAuthRoutes(config: Config, provider: Provider) {
     const router = Router();
 
     const google = makeGoogleClient(config.google);
 
     router.use(cookieParser());
 
-    router.get("/login", async (req, res, next) => {
+    router.get("/ui", async (req, res, next) => {
         try {
-            const state = await generateState(config.stateTokenSecret, typeof req.query.redirect === "string" ? req.query.redirect : undefined);
+            let details: Parameters<Parameters<ReturnType<typeof provider.interactionDetails>["then"]>[0]>[0];
+            try {
+                details = await provider.interactionDetails(req, res);
+            } catch (e) {
+                return res.status(400).send("Invalid interaction ID");
+            }
+            if (details.prompt.name === "consent") {
+                res.send("Logged in");
+            } else {
+                res.redirect(303, "/auth/ui/login");
+            }
+        } catch (e) {
+            next(e);
+        }
+    });
+
+    router.get("/ui/login", async (req, res, next) => {
+        try {
+            const state = await generateState(config.stateTokenSecret, undefined);
             res.cookie("ybbauthstate", state, {
                 domain: config.stateTokenDomain,
                 sameSite: "lax",
@@ -79,12 +98,18 @@ export default function makeAuthRoutes(config: Config) {
         }
     });
 
-    router.get("/callback", async (req, res, next) => {
+    router.get("/ui/callback", async (req, res, next) => {
         try {
+            try {
+                await provider.interactionDetails(req, res);
+            } catch (e) {
+                return res.status(400).send("Invalid interaction ID");
+            }
+
             if (req.query.provider === "google") {
                 if (typeof req.query.state !== "string") return res.status(400).send("state must be a string");
                 if (req.query.state !== req.cookies.ybbauthstate) return res.status(400).send("Invalid state");
-                const {isValid, redirectURI} = await verifyState(req.query.state, config.stateTokenSecret);
+                const {isValid} = await verifyState(req.query.state, config.stateTokenSecret);
                 if (!isValid) return res.status(400).send("Invalid state");
 
                 if (typeof req.query.code !== "string") return res.status(400).send("code must be a string"); // nya
@@ -103,7 +128,9 @@ export default function makeAuthRoutes(config: Config) {
                     await user.save();
                 }
 
-                res.redirect(303, redirectURI || "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+                await provider.interactionFinished(req, res, {login: {
+                    accountId: user._id.toString()
+                }}, {mergeWithLastSubmission: false});
             } else {
                 res.status(400);
                 res.send("Unsupported auth provider");
