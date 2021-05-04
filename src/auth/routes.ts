@@ -6,7 +6,7 @@ import { promisify } from 'util';
 import { sign, verify } from 'jsonwebtoken';
 import { randomBytes } from 'crypto';
 import cookieParser from 'cookie-parser';
-import { Provider } from 'oidc-provider';
+import { InteractionResults, Provider } from 'oidc-provider';
 
 const random = promisify(randomBytes);
 
@@ -68,8 +68,45 @@ export default function makeAuthRoutes(config: Config, provider: Provider) {
             } catch (e) {
                 return res.status(400).send("Invalid interaction ID");
             }
+            console.log(details);
             if (details.prompt.name === "consent") {
-                res.send("Logged in");
+                // All of the clients are first-party
+                // TODO: Actual consent screen
+
+                let grant: InstanceType<typeof provider.Grant>;
+                let grantId = details.grantId;
+
+                if (grantId) {
+                    grant = await provider.Grant.find(details.grantId);
+                } else {
+                    grant = new provider.Grant();
+                    grant.accountId = details.session!.accountId;
+                    grant.clientId = details.params.client_id as string;
+                    console.log(grant);
+                }
+
+                if (details.prompt.details.missingOIDCScope) {
+                    grant.addOIDCScope((details.prompt.details.missingOIDCScope as any).join(" "));
+                }
+
+                if (details.prompt.details.missingOIDCClaims) {
+                    grant.addOIDCClaims(details.prompt.details.missingOIDCClaims as string[]);
+                }
+
+                if (details.prompt.details.missingResourceScopes) {
+                    for (const [indicator, scopes] of Object.entries(details.prompt.details.missingResourceScopes)) {
+                        grant.addResourceScope(indicator, scopes.join(" "));
+                    }
+                }
+
+                grantId = await grant.save();
+
+                let consent: InteractionResults["consent"] = {};
+                if (!details.grantId) {
+                    consent.grantId = grantId;
+                }
+                
+                await provider.interactionFinished(req, res, {consent});
             } else {
                 res.redirect(303, "/auth/ui/login");
             }
@@ -138,6 +175,8 @@ export default function makeAuthRoutes(config: Config, provider: Provider) {
         } catch (e) {
             next(e);
         }
+
+        // test.duty.yourbcabus.com:3000/authorize?client_id=uwu&response_type=code&redirect_uri=http:%2F%2Flocalhost:6502%2F&scope=openid
     });
 
     return router;

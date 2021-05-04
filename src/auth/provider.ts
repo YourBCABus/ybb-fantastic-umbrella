@@ -92,7 +92,7 @@ export default function makeProvider(config: Config) {
             const user = await Models.User.findById(id);
             if (!user) throw new Error("User does not exist");
             return {
-                accountId: user._id,
+                accountId: user._id.toString(),
                 async claims(_use, _scope) {
                     return {
                         sub: user._id,
