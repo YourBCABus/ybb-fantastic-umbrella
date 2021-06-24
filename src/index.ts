@@ -20,6 +20,7 @@ import alertEndpoints from './alerts';
 import makeAuthRoutes from './auth/routes';
 import resolvers from './resolvers';
 import makeProvider from './auth/provider';
+import { authenticateWithoutCheckingPermissions } from './auth/middleware';
 
 export interface BusLocationUpdateRequest {
   locations: string[];
@@ -75,6 +76,10 @@ app.use("/auth", makeAuthRoutes(config, provider));
 
 app.get("/teapot", (_, res) => {
   res.status(418).send("☕");
+});
+
+app.get("/test", authenticateWithoutCheckingPermissions(provider, ["test", "offline_access"]), (_, res) => {
+  res.send("test");
 });
 
 server.applyMiddleware({app});
