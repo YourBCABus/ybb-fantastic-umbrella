@@ -88,6 +88,11 @@ export default function makeProvider(config: Config) {
         interactions: {
             url: (_a, _b) => `/auth/ui`
         },
+        scopes: [
+            "openid",
+            "offline_access",
+            "test"
+        ],
         async findAccount(_ctx, id) {
             const user = await Models.User.findById(id);
             if (!user) throw new Error("User does not exist");

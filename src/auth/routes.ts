@@ -174,7 +174,7 @@ export default function makeAuthRoutes(config: Config, provider: Provider) {
             next(e);
         }
 
-        // test.duty.yourbcabus.com:3000/authorize?client_id=uwu&response_type=code&redirect_uri=http:%2F%2Flocalhost:6502%2F&scope=openid%20sdf
+        // test.duty.yourbcabus.com:3000/authorize?client_id=uwu&response_type=code&redirect_uri=http:%2F%2Flocalhost:6502%2F&scope=openid%20test%20offline_access&prompt=consent
     });
 
     return router;

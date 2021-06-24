@@ -35,7 +35,7 @@ try {
   serviceAccount = JSON.parse(fs.readFileSync(path.join(__dirname, "../service-account.json"), "utf8"));
 } catch (e) {
   console.log("Failed to read service-account.json:");
-  console.log(e.stack);
+  console.log(e.message);
   console.log("Push notifications will not be sent.")
 }
 
