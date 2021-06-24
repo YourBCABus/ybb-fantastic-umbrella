@@ -1,11 +1,20 @@
 import { IResolvers, UserInputError } from 'apollo-server-express';
-import { School, Bus, Stop, Coordinate, BusLocationHistory, Alert, Color, DismissalRange } from './interfaces';
+import { School, Bus, Stop, Coordinate, BusLocationHistory, Alert, Color, DismissalRange, Point } from './interfaces';
 import { Models } from './models';
 import { isValidId } from './utils';
 import Scalars from './datehandling';
 
-function processLocation(location?: Coordinate) {
-    return location && {lat: location.latitude, long: location.longitude};
+function processLocation(location?: Coordinate | {}) {
+    if (!location) return;
+    if (typeof (location as Partial<Coordinate>).latitude === "undefined") return;
+    if (typeof (location as Partial<Coordinate>).longitude === "undefined") return;
+    return {lat: (location as Coordinate).latitude, long: (location as Coordinate).longitude};
+}
+
+function processCoords(coords?: Point) {
+    if (!coords) return;
+    if (typeof (coords as Partial<Point>).coordinates === "undefined") return;
+    return {lat: coords.coordinates[0], long: coords.coordinates[1]};
 }
 
 function processSchool(school?: School) {
@@ -48,7 +57,7 @@ function processStop(stop?: Stop) {
         busID: stop.bus_id,
         name: stop.name,
         description: stop.description,
-        location: processLocation(stop.location),
+        location: processCoords(stop.coords),
         order: stop.order,
         available: stop.available,
         arrivalTime: stop.arrival_time,
