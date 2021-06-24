@@ -68,7 +68,6 @@ export default function makeAuthRoutes(config: Config, provider: Provider) {
             } catch (e) {
                 return res.status(400).send("Invalid interaction ID");
             }
-            console.log(details);
             if (details.prompt.name === "consent") {
                 // All of the clients are first-party
                 // TODO: Actual consent screen
@@ -82,7 +81,6 @@ export default function makeAuthRoutes(config: Config, provider: Provider) {
                     grant = new provider.Grant();
                     grant.accountId = details.session!.accountId;
                     grant.clientId = details.params.client_id as string;
-                    console.log(grant);
                 }
 
                 if (details.prompt.details.missingOIDCScope) {
@@ -176,7 +174,7 @@ export default function makeAuthRoutes(config: Config, provider: Provider) {
             next(e);
         }
 
-        // test.duty.yourbcabus.com:3000/authorize?client_id=uwu&response_type=code&redirect_uri=http:%2F%2Flocalhost:6502%2F&scope=openid
+        // test.duty.yourbcabus.com:3000/authorize?client_id=uwu&response_type=code&redirect_uri=http:%2F%2Flocalhost:6502%2F&scope=openid%20sdf
     });
 
     return router;
