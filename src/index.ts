@@ -20,7 +20,7 @@ import alertEndpoints from './alerts';
 import makeAuthRoutes from './auth/routes';
 import resolvers from './resolvers';
 import makeProvider from './auth/provider';
-import { authenticateWithoutCheckingPermissions } from './auth/middleware';
+import { authContext } from './auth/context';
 
 export interface BusLocationUpdateRequest {
   locations: string[];
@@ -50,11 +50,20 @@ if (serviceAccount) {
   });
 }
 
-const server = new ApolloServer({typeDefs, resolvers, introspection: true, validationRules: [
-  costAnalysis({
-    maximumCost: 50
-  })
-], playground: true});
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  introspection: true,
+  validationRules: [
+    costAnalysis({
+      maximumCost: 50
+    })
+  ],
+  playground: true,
+  async context({req}) {
+    return {...(await authContext(provider, req))};
+  }
+});
 
 const app = express();
 app.engine("hbs", exphbs({extname: ".hbs"}));
@@ -76,10 +85,6 @@ app.use("/auth", makeAuthRoutes(config, provider));
 
 app.get("/teapot", (_, res) => {
   res.status(418).send("☕");
-});
-
-app.get("/test", authenticateWithoutCheckingPermissions(provider, ["test", "offline_access"]), (_, res) => {
-  res.send("test");
 });
 
 server.applyMiddleware({app});

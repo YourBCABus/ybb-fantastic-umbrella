@@ -3,6 +3,7 @@ import { School, Bus, Stop, Coordinate, BusLocationHistory, Alert, Color, Dismis
 import { Models } from './models';
 import { isValidId } from './utils';
 import Scalars from './datehandling';
+import { authenticateUserScope } from './auth/context';
 
 function processLocation(location?: Coordinate) {
     return location && {lat: location.latitude, long: location.longitude};
@@ -108,6 +109,10 @@ const resolvers: IResolvers<any, any> = {
         },
         async bca() {
             return processSchool(await Models.School.findById("5bca51e785aa2627e14db459"));
+        },
+        async test(_a, _b, context) {
+            authenticateUserScope(context, ["test"]);
+            return "test";
         }
     },
     School: {
