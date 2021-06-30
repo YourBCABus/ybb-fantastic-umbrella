@@ -48,6 +48,13 @@ export interface User {
   email: string;
 }
 
+export interface Permission {
+  _id: ObjectId;
+  user_id: string;
+  school_id: string;
+  scopes: string[];
+}
+
 export interface Coordinate {
   latitude: number;
   longitude: number;
@@ -64,6 +71,7 @@ export interface School {
   location?: Coordinate;
   available: boolean;
   timezone?: string;
+  public_scopes?: string[];
 }
 
 export interface Bus {

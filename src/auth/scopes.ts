@@ -3,3 +3,7 @@ export const userScopes = new Set([
     "offline_access",
     "test"
 ]);
+
+export const schoolScopes = new Set([
+    "read"
+]);

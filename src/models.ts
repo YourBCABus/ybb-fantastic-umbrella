@@ -1,11 +1,17 @@
 import { model, Schema, Document } from 'mongoose';
 
-import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, DismissalRange, Alert, User} from './interfaces';
+import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, DismissalRange, Alert, User, Permission} from './interfaces';
 
 export namespace Models {
   export const User = model<User & Document>("User", new Schema({
     google_id: {type: String, unique: true},
     email: String
+  }));
+
+  export const Permission = model<Permission & Document>("Permission", new Schema({
+    user_id: {type: String, required: true},
+    school_id: {type: String, required: true},
+    scopes: {type: [String], required: true}
   }));
 
   /** @deprecated */
@@ -39,7 +45,8 @@ export namespace Models {
       longitude: Number
     },
     available: {type: Boolean, required: true, default: true},
-    timezone: String
+    timezone: String,
+    public_scopes: [String]
   }));
 
   export const Bus = model<Bus & Document>("Bus", new Schema({

@@ -2,7 +2,7 @@ import { Adapter, AdapterPayload, Provider } from 'oidc-provider';
 import { Config } from '../interfaces';
 import { Models } from '../models';
 import mongoose from 'mongoose';
-import { userScopes } from './scopes';
+import { schoolScopes, userScopes } from './scopes';
 
 class DBAdapter implements Adapter {
     constructor(private name: string) {}
@@ -90,7 +90,8 @@ export default function makeProvider(config: Config) {
             url: (_a, _b) => `/auth/ui`
         },
         scopes: [
-            ...userScopes.values()
+            ...userScopes.values(),
+            ...schoolScopes.values()
         ],
         async findAccount(_ctx, id) {
             const user = await Models.User.findById(id);
