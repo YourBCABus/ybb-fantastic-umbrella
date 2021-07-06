@@ -3,6 +3,7 @@ import { School, Bus, Stop, Coordinate, BusLocationHistory, Alert, Color, Dismis
 import { Models } from './models';
 import { isValidId } from './utils';
 import Scalars from './datehandling';
+import { authenticateSchoolScope, authenticateUserScope } from './auth/context';
 
 function processLocation(location?: Coordinate | {}) {
     if (!location) return;
@@ -95,28 +96,56 @@ const resolvers: IResolvers<any, any> = {
     DateTime: Scalars.DateTime,
     Time: Scalars.Time,
     Query: {
-        async school(_, {id}: {id: string}) {
+        async school(_, {id}: {id: string}, context) {
             if (!isValidId(id)) throw new UserInputError("bad_school_id");
+            await authenticateSchoolScope(context, ["read"], id);
             return processSchool(await Models.School.findById(id));
         },
-        async bus(_, {id}: {id: string}) {
+        async bus(_, {id}: {id: string}, context) {
             if (!isValidId(id)) throw new UserInputError("bad_bus_id");
-            return processBus(await Models.Bus.findById(id));
+            const bus = await Models.Bus.findById(id);
+            if (bus) {
+                await authenticateSchoolScope(context, ["read"], bus.school_id);
+            }
+            return processBus(bus);
         },
-        async stop(_, {id}: {id: string}) {
+        async stop(_, {id}: {id: string}, context) {
             if (!isValidId(id)) throw new UserInputError("bad_stop_id");
-            return processStop(await Models.Stop.findById(id));
+            const stop = await Models.Stop.findById(id);
+            if (stop) {
+                const bus = await Models.Bus.findById(stop.bus_id);
+                if (bus) {
+                    await authenticateSchoolScope(context, ["read"], bus.school_id);
+                } else {
+                    throw new Error("Stop has invalid bus ID");
+                }
+            }
+            return processStop(stop);
         },
-        async alert(_, {id}: {id: string}) {
+        async alert(_, {id}: {id: string}, context) {
             if (!isValidId(id)) throw new UserInputError("bad_alert_id");
-            return processAlert(await Models.Alert.findById(id));
+            const alert = await Models.Alert.findById(id);
+            if (alert) {
+                await authenticateSchoolScope(context, ["read"], alert.school_id);
+            }
+            return processAlert(alert);
         },
-        async dismissalTimeData(_, {id}: {id: string}) {
+        async dismissalTimeData(_, {id}: {id: string}, context) {
             if (!isValidId(id)) throw new UserInputError("bad_dismissal_time_data_id");
-            return processDismissalData(await Models.DismissalRange.findById(id));
+            const dismissalData = await Models.DismissalRange.findById(id)
+            if (dismissalData) {
+                await authenticateSchoolScope(context, ["read"], dismissalData.school_id)
+            }
+            return processDismissalData(dismissalData);
         },
-        async bca() {
-            return processSchool(await Models.School.findById("5bca51e785aa2627e14db459"));
+        async bca(_a, _b, context) {
+            const id = "5bca51e785aa2627e14db459";
+            await authenticateSchoolScope(context, ["read"], id);
+            return processSchool(await Models.School.findById(id));
+        },
+        async test(_a, _b, context) {
+            authenticateUserScope(context, ["test"]);
+            return "test";
         }
     },
     School: {

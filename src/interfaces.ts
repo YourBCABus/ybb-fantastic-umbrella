@@ -1,11 +1,21 @@
 import {Application} from "express";
 import {ServiceAccount} from "firebase-admin";
+import { ObjectId } from "mongoose";
+import { ClientMetadata, JWK } from "oidc-provider";
+import {GoogleConfig} from "./auth/google";
 
 export interface Config {
   mongo: string;
   notification: {text: string, title: string};
   port: number;
   bindTo: string;
+  google: GoogleConfig;
+  stateTokenSecret: string;
+  stateTokenDomain?: string;
+  authIssuer: string;
+  authClients: ClientMetadata[];
+  authCookieKeys: string[];
+  authJWKKeys: JWK[];
 }
 
 export interface ServerProviderArguments {
@@ -14,6 +24,7 @@ export interface ServerProviderArguments {
   serviceAccount?: ServiceAccount;
 }
 
+/** @deprecated */
 export interface Permissions {
   bus?: {create?: boolean, update?: boolean, delete?: boolean, location?: boolean};
   stop?: {create?: boolean, update?: boolean, delete?: boolean, suggest?: boolean};
@@ -22,12 +33,26 @@ export interface Permissions {
   alerts?: boolean;
 }
 
+/** @deprecated */
 export interface AuthToken extends Permissions {
   _id: any;
   tokenHash: string;
   description?: string;
   school_id: string;
   admin?: boolean;
+}
+
+export interface User {
+  _id: ObjectId;
+  google_id?: string;
+  email: string;
+}
+
+export interface Permission {
+  _id: ObjectId;
+  user_id: string;
+  school_id: string;
+  scopes: string[];
 }
 
 export interface Coordinate {
@@ -46,6 +71,7 @@ export interface School {
   location?: Coordinate;
   available: boolean;
   timezone?: string;
+  public_scopes?: string[];
 }
 
 export interface Bus {

@@ -1,0 +1,29 @@
+.brand-text p:last-child {
+    margin-bottom: 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.brand img {
+    width: 200px;
+}
+
+@media (min-width: 768px) {
+    .brand img {
+        width: 100px;
+        margin-right: 0.5em;
+    }
+
+    .login-panel {
+        width: 420px;
+    }
+}
+
+@media (max-width: 767px) {
+    .brand-text {
+        text-align: center;
+    }
+
+    .brand {
+        margin-bottom: 64px;
+    }
+}
