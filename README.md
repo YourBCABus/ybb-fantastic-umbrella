@@ -24,7 +24,7 @@ npm start
 
 You'll need a config.json file to start the server. You can ask @anli5005 for one, or [attempt to piece it together yourself](https://github.com/YourBCABus/fantastic-umbrella/blob/18725a1b2339d3466e6ebe196e6c8f07a5e39b20/src/interfaces.ts#L7).
 
-**Tip:** Run `tsc` in watch mode and use a tool such as `nodemon` to automatically restart the server. Here's the commands I use to do that:
+**Tip:** Run `tsc` in watch mode and use a tool such as `nodemon` to automatically restart the server. Here's the commands I use to do that: *\- @anli5005*
 
 ```sh
 npm run build -- -w
@@ -35,7 +35,7 @@ nodemon -w dist -d 0.5 # in a different terminal
 
 Code in the main branch should always be production-ready. Features or anything that might require a review should be committed to a different branch.
 
-It's my intent to set up CD sometime soon.
+It's my intent to set up CD sometime soon. *\- @anli5005*
 
 ## Common tasks
 
@@ -50,4 +50,4 @@ It's my intent to set up CD sometime soon.
 ### Adding to the legacy REST API
 Don't.
 
-(The legacy REST API is comprised of `schools.ts`, `buses.ts`, `stops.ts`, `dismissal.ts`, and `alerts.ts`. They will be replaced by the GraphQL API.)
+(The legacy REST API is comprised of `schools.ts`, `buses.ts`, `stops.ts`, `dismissal.ts`, and `alerts.ts`. It will be replaced by the GraphQL API.)
