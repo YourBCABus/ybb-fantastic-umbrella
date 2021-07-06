@@ -1,6 +1,6 @@
-import {ServerProviderArguments, Stop} from "./interfaces";
-import {Models} from "./models";
-import {authenticate, isValidId} from "./utils";
+import {ServerProviderArguments, Stop} from "../interfaces";
+import {Models} from "../models";
+import {authenticate, isValidId} from "../utils";
 
 export default ({app}: ServerProviderArguments) => {
   app.get("/schools/:school/buses/:bus/stops", async (_, res, next) => {

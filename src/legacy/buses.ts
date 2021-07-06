@@ -1,7 +1,7 @@
-import {Bus, ServerProviderArguments} from "./interfaces";
-import {Models} from "./models";
-import {authenticate, isValidId} from "./utils";
-import {BusLocationUpdateRequest} from "./index";
+import {Bus, ServerProviderArguments} from "../interfaces";
+import {Models} from "../models";
+import {authenticate, isValidId} from "../utils";
+import {BusLocationUpdateRequest} from "../index";
 
 export const processNotificationText = (text: string, bus: Bus) => {
   let location = (bus.locations && bus.locations.length > 0) ? bus.locations[0] : "?";

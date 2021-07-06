@@ -94,13 +94,16 @@ function processDismissalData(data?: DismissalRange) {
 
 const resolvers: IResolvers<any, any> = {
     DateTime: Scalars.DateTime,
+
     Time: Scalars.Time,
+
     Query: {
         async school(_, {id}: {id: string}, context) {
             if (!isValidId(id)) throw new UserInputError("bad_school_id");
             await authenticateSchoolScope(context, ["read"], id);
             return processSchool(await Models.School.findById(id));
         },
+
         async bus(_, {id}: {id: string}, context) {
             if (!isValidId(id)) throw new UserInputError("bad_bus_id");
             const bus = await Models.Bus.findById(id);
@@ -109,6 +112,7 @@ const resolvers: IResolvers<any, any> = {
             }
             return processBus(bus);
         },
+
         async stop(_, {id}: {id: string}, context) {
             if (!isValidId(id)) throw new UserInputError("bad_stop_id");
             const stop = await Models.Stop.findById(id);
@@ -122,6 +126,7 @@ const resolvers: IResolvers<any, any> = {
             }
             return processStop(stop);
         },
+
         async alert(_, {id}: {id: string}, context) {
             if (!isValidId(id)) throw new UserInputError("bad_alert_id");
             const alert = await Models.Alert.findById(id);
@@ -130,6 +135,7 @@ const resolvers: IResolvers<any, any> = {
             }
             return processAlert(alert);
         },
+
         async dismissalTimeData(_, {id}: {id: string}, context) {
             if (!isValidId(id)) throw new UserInputError("bad_dismissal_time_data_id");
             const dismissalData = await Models.DismissalRange.findById(id)
@@ -138,23 +144,28 @@ const resolvers: IResolvers<any, any> = {
             }
             return processDismissalData(dismissalData);
         },
+
         async bca(_a, _b, context) {
             const id = "5bca51e785aa2627e14db459";
             await authenticateSchoolScope(context, ["read"], id);
             return processSchool(await Models.School.findById(id));
         },
+
         async test(_a, _b, context) {
             authenticateUserScope(context, ["test"]);
             return "test";
         }
     },
+
     School: {
         async buses({id}: {id: string}) {
             return (await Models.Bus.find({school_id: id})).map(bus => processBus(bus));
         },
+
         async alerts({id}: {id: string}) {
             return (await Models.Alert.find({school_id: id})).map(alert => processAlert(alert));
         },
+
         async dismissalTimeData({id}: {id: string}, {date: inputDate}: {date?: Date}) {
             const date = inputDate || new Date();
             return processDismissalData(await Models.DismissalRange.findOne({
@@ -164,14 +175,17 @@ const resolvers: IResolvers<any, any> = {
                 days_of_week: date.getUTCDay() // HACK: Better timezone support
             }));
         },
+
         async allDismissalTimeData({id}: {id: string}) {
             return (await Models.DismissalRange.find({school_id: id})).map(data => processDismissalData(data));
         }
     },
+
     Bus: {
         async school({schoolID}: {schoolID: string}) {
             return processSchool(await Models.School.findById(schoolID));
         },
+
         async recentHistory({id}: {id: string}) {
             const history = await Models.BusLocationHistory.find({
                 bus_id: id,
@@ -179,25 +193,30 @@ const resolvers: IResolvers<any, any> = {
             }).sort([["_id", -1]]).limit(10);
             return history.map(entry => processHistoryEntry(entry));
         },
+
         async stops({id}: {id: string}) {
             return (await Models.Stop.find({bus_id: id})).map(stop => processStop(stop));
         }
     },
+
     LocationHistoryEntry: {
         async bus(_, {busID}: {busID: string}) {
             return processBus(await Models.Bus.findById(busID));
         }
     },
+
     Stop: {
         async bus({busID}: {busID: string}) {
             return processBus(await Models.Bus.findById(busID))
         }
     },
+
     Alert: {
         async school({schoolID}: {schoolID: string}) {
             return processSchool(await Models.School.findById(schoolID));
         }
     },
+
     AlertColor: {
         appearances(color: Color) {
             return color.appearances ? Object.keys(color.appearances).map(appearanceName => ({
@@ -205,6 +224,7 @@ const resolvers: IResolvers<any, any> = {
                 ...color.appearances[appearanceName]
             })) : [];
         },
+        
         color(color: Color, {appearance}: {appearance: string}) {
             const resolved = color.appearances[appearance];
             if (resolved) {
@@ -214,6 +234,7 @@ const resolvers: IResolvers<any, any> = {
             }
         }
     },
+
     DismissalTimeData: {
         async school({schoolID}: {schoolID: string}) {
             return processSchool(await Models.School.findById(schoolID));

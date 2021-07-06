@@ -1,6 +1,6 @@
-import {ServerProviderArguments} from "./interfaces";
-import {isValidId} from "./utils";
-import {Models} from "./models";
+import {ServerProviderArguments} from "../interfaces";
+import {isValidId} from "../utils";
+import {Models} from "../models";
 
 export default ({app}: ServerProviderArguments) => {
   app.use("/schools/:school", async (req, res, next) => {
