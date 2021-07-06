@@ -3,17 +3,6 @@ import {Models} from "../models";
 import {authenticate, isValidId} from "../utils";
 import {BusLocationUpdateRequest} from "../index";
 
-export const processNotificationText = (text: string, bus: Bus) => {
-  let location = (bus.locations && bus.locations.length > 0) ? bus.locations[0] : "?";
-  let result = text.replace(/\${name}/gi, bus.name || "").replace(/\${location}/gi, location);
-  if (typeof bus.departure !== "undefined") {
-      let hour = Math.floor(bus.departure / 60) % 12;
-      let minute = bus.departure % 60;
-      result += ` It will depart at ${hour === 0 ? 12 : hour}:${minute < 10 ? ("0" + minute.toString()) : minute} ${bus.departure >= 12 * 60 ? "PM" : "AM"}.`;
-  }
-  return result;
-};
-
 export default ({app, config}: ServerProviderArguments) => {
   app.get("/schools/:school/buses", async (_, res, next) => {
     try {
