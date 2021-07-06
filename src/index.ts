@@ -5,7 +5,6 @@ import cors from 'cors';
 import express from 'express';
 import { json } from 'body-parser';
 import mongoose from 'mongoose';
-import * as admin from 'firebase-admin';
 import { ApolloServer, gql } from 'apollo-server-express';
 import costAnalysis from 'graphql-cost-analysis';
 import exphbs from 'express-handlebars';
@@ -30,25 +29,10 @@ export interface BusLocationUpdateRequest {
 }
 
 const config: Config = JSON.parse(fs.readFileSync(path.join(__dirname, "../config.json"), "utf8"));
-let serviceAccount: admin.ServiceAccount;
-
-try {
-  serviceAccount = JSON.parse(fs.readFileSync(path.join(__dirname, "../service-account.json"), "utf8"));
-} catch (e) {
-  console.log("Failed to read service-account.json:");
-  console.log(e.message);
-  console.log("Push notifications will not be sent.")
-}
 
 const typeDefs = gql(fs.readFileSync(path.join(__dirname, "../yourbcabus.graphql"), "utf8"));
 
 mongoose.connect(config.mongo, {useNewUrlParser: true, useUnifiedTopology: true});
-
-if (serviceAccount) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-}
 
 const server = new ApolloServer({
   typeDefs,
@@ -78,7 +62,7 @@ app.use(json());
   stopEndpoints,
   dismissalEndpoints,
   alertEndpoints
-].forEach(fn => fn({app, config, serviceAccount}));
+].forEach(fn => fn({app, config}));
 
 const provider = makeProvider(config);
 app.use("/auth", makeAuthRoutes(config, provider));

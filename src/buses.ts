@@ -1,7 +1,6 @@
 import {Bus, ServerProviderArguments} from "./interfaces";
 import {Models} from "./models";
 import {authenticate, isValidId} from "./utils";
-import * as admin from "firebase-admin";
 import {BusLocationUpdateRequest} from "./index";
 
 export const processNotificationText = (text: string, bus: Bus) => {
@@ -15,7 +14,7 @@ export const processNotificationText = (text: string, bus: Bus) => {
   return result;
 };
 
-export default ({app, config, serviceAccount}: ServerProviderArguments) => {
+export default ({app, config}: ServerProviderArguments) => {
   app.get("/schools/:school/buses", async (_, res, next) => {
     try {
       res.json(await Models.Bus.find({school_id: res.locals.school._id}));
@@ -146,34 +145,6 @@ export default ({app, config, serviceAccount}: ServerProviderArguments) => {
       await res.locals.bus.save();
 
       res.json({ok: true});
-
-      if (serviceAccount && body.locations.length > 0) {
-        console.log(`Sending message over FCM for ${res.locals.bus.name}.`);
-
-        let message = {
-          topic: `school.${res.locals.school._id}.bus.${res.locals.bus._id}`,
-          notification: {
-            title: processNotificationText(config.notification.title, res.locals.bus),
-            body: processNotificationText(config.notification.text, res.locals.bus)
-          },
-          data: {
-            bus: res.locals.bus._id.toString(),
-            location: body.locations[0],
-            invalidate_time: invalidate_time.toJSON(),
-            source: body.source,
-            time: new Date().toJSON()
-          },
-          apns: {
-            payload: {
-              aps: {
-                sound: "default"
-              }
-            }
-          }
-        };
-
-        admin.messaging().send(message as any).then(_ => console.log(`Successfully sent for ${res.locals.bus.name}.`));
-      }
     } catch (e) {
       next(e);
     }

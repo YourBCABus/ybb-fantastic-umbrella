@@ -1,12 +1,10 @@
 import {Application} from "express";
-import {ServiceAccount} from "firebase-admin";
 import { ObjectId } from "mongoose";
 import { ClientMetadata, JWK } from "oidc-provider";
 import {GoogleConfig} from "./auth/google";
 
 export interface Config {
   mongo: string;
-  notification: {text: string, title: string};
   port: number;
   bindTo: string;
   google: GoogleConfig;
@@ -21,7 +19,6 @@ export interface Config {
 export interface ServerProviderArguments {
   app: Application;
   config: Config;
-  serviceAccount?: ServiceAccount;
 }
 
 /** @deprecated */
