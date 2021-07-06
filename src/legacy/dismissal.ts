@@ -1,6 +1,6 @@
-import {DismissalRange, ServerProviderArguments} from "./interfaces";
-import {Models} from "./models";
-import {authenticate, isValidId} from "./utils";
+import {DismissalRange, ServerProviderArguments} from "../interfaces";
+import {Models} from "../models";
+import {authenticate, isValidId} from "../utils";
 
 export default ({app}: ServerProviderArguments) => {
   app.get("/schools/:school/dismissal", async (req, res, next) => {

@@ -12,11 +12,11 @@ import exphbs from 'express-handlebars';
 
 import {Config} from './interfaces';
 
-import schoolEndpoints from './schools';
-import busEndpoints from './buses';
-import stopEndpoints from './stops';
-import dismissalEndpoints from './dismissal';
-import alertEndpoints from './alerts';
+import schoolEndpoints from './legacy/schools';
+import busEndpoints from './legacy/buses';
+import stopEndpoints from './legacy/stops';
+import dismissalEndpoints from './legacy/dismissal';
+import alertEndpoints from './legacy/alerts';
 import makeAuthRoutes from './auth/routes';
 import resolvers from './resolvers';
 import makeProvider from './auth/provider';
