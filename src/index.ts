@@ -18,7 +18,7 @@ import stopEndpoints from './legacy/stops';
 import dismissalEndpoints from './legacy/dismissal';
 import alertEndpoints from './legacy/alerts';
 import makeAuthRoutes from './auth/routes';
-import resolvers from './resolvers';
+import resolvers from './graphql/resolvers';
 import makeProvider from './auth/provider';
 import { authContext } from './auth/context';
 

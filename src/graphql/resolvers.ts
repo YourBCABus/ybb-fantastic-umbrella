@@ -1,9 +1,9 @@
 import { IResolvers, UserInputError } from 'apollo-server-express';
-import { School, Bus, Stop, Coordinate, BusLocationHistory, Alert, Color, DismissalRange, Point } from './interfaces';
-import { Models } from './models';
-import { isValidId } from './utils';
+import { School, Bus, Stop, Coordinate, BusLocationHistory, Alert, Color, DismissalRange, Point } from '../interfaces';
+import { Models } from '../models';
+import { isValidId } from '../utils';
 import Scalars from './datehandling';
-import { authenticateSchoolScope, authenticateUserScope } from './auth/context';
+import { authenticateSchoolScope, authenticateUserScope } from '../auth/context';
 
 function processLocation(location?: Coordinate | {}) {
     if (!location) return;
