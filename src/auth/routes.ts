@@ -10,6 +10,12 @@ import { InteractionResults, Provider } from 'oidc-provider';
 
 const random = promisify(randomBytes);
 
+/**
+ * Generates a state token.
+ * @param secret - secret to use when signing the token 
+ * @param redirectURI - redirect URI of the OAuth flow
+ * @returns a promise that fulfills with a state token
+ */
 async function generateState(secret: string, redirectURI?: string): Promise<string> {
     const jti = (await random(30)).toString("base64");
     return await new Promise((res, rej) => {
@@ -31,6 +37,12 @@ async function generateState(secret: string, redirectURI?: string): Promise<stri
     });
 }
 
+/**
+ * Verifies a state token.
+ * @param state - state token
+ * @param secret - secret to use when verifying the token
+ * @returns a promise that fulfills with an object containing `isValid` and `redirectURI`
+ */
 async function verifyState(state: string, secret: string): Promise<{isValid: boolean, redirectURI?: string}> {
     let data: {redirectURI?: string};
     try {
@@ -53,6 +65,12 @@ async function verifyState(state: string, secret: string): Promise<{isValid: boo
     return {isValid: true, redirectURI: data.redirectURI}
 }
 
+/**
+ * Creates a router for the auth UI.
+ * @param config - server configuration
+ * @param provider - oidc-provider Provider
+ * @returns a router with auth UI routes
+ */
 export default function makeAuthRoutes(config: Config, provider: Provider) {
     const router = Router();
 

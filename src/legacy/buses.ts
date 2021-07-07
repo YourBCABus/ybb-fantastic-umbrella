@@ -2,7 +2,13 @@ import {Bus, ServerProviderArguments} from "../interfaces";
 import {Models} from "../models";
 import {authenticate, isValidId} from "../utils";
 import * as admin from "firebase-admin";
-import {BusLocationUpdateRequest} from "../index";
+
+export interface BusLocationUpdateRequest {
+  locations: string[];
+  associate_time?: boolean;
+  invalidate_time: any;
+  source: string;
+}
 
 export const processNotificationText = (text: string, bus: Bus) => {
   let location = (bus.locations && bus.locations.length > 0) ? bus.locations[0] : "?";

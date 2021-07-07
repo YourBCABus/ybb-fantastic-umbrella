@@ -2,6 +2,9 @@ import { model, Schema, Document } from 'mongoose';
 
 import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, DismissalRange, Alert, User, Permission} from './interfaces';
 
+/**
+ * Mongoose models used by YourBCABus.
+ */
 export namespace Models {
   export const User = model<User & Document>("User", new Schema({
     google_id: {type: String, unique: true},
@@ -91,6 +94,7 @@ export namespace Models {
   stopSchema.index({coords: "2dsphere"});
   export const Stop = model<Stop & Document>("Stop", stopSchema);
 
+  /** @deprecated */
   export const StopSuggestion = model<StopSuggestion & Document>("StopSuggestion", new Schema({
     bus_id: {type: String, required: true},
     location: {

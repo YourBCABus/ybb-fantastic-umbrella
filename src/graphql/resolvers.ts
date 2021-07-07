@@ -1,97 +1,14 @@
 import { IResolvers, UserInputError } from 'apollo-server-express';
-import { School, Bus, Stop, Coordinate, BusLocationHistory, Alert, Color, DismissalRange, Point } from '../interfaces';
+import { Color } from '../interfaces';
 import { Models } from '../models';
 import { isValidId } from '../utils';
 import Scalars from './datehandling';
 import { authenticateSchoolScope, authenticateUserScope } from '../auth/context';
+import { processSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
 
-function processLocation(location?: Coordinate | {}) {
-    if (!location) return;
-    if (typeof (location as Partial<Coordinate>).latitude === "undefined") return;
-    if (typeof (location as Partial<Coordinate>).longitude === "undefined") return;
-    return {lat: (location as Coordinate).latitude, long: (location as Coordinate).longitude};
-}
-
-function processCoords(coords?: Point) {
-    if (!coords) return;
-    if (typeof (coords as Partial<Point>).coordinates === "undefined") return;
-    return {lat: coords.coordinates[0], long: coords.coordinates[1]};
-}
-
-function processSchool(school?: School) {
-    return school && {
-        id: school._id,
-        name: school.name,
-        location: processLocation(school.location),
-        available: school.available,
-        timeZone: school.timezone
-    }
-}
-
-function processBus(bus?: Bus) {
-    return bus && {
-        id: bus._id,
-        schoolID: bus.school_id,
-        locations: bus.locations,
-        otherNames: bus.other_names,
-        available: bus.available,
-        name: bus.name,
-        company: bus.company,
-        phone: bus.phone,
-        numbers: bus.numbers,
-        invalidateTime: bus.invalidate_time
-    };
-}
-
-function processHistoryEntry(entry?: BusLocationHistory) {
-    return entry && {
-        busID: entry.bus_id,
-        time: entry.time,
-        locations: entry.locations,
-        source: entry.source
-    };
-}
-
-function processStop(stop?: Stop) {
-    return stop && {
-        id: stop._id,
-        busID: stop.bus_id,
-        name: stop.name,
-        description: stop.description,
-        location: processCoords(stop.coords),
-        order: stop.order,
-        available: stop.available,
-        arrivalTime: stop.arrival_time,
-        invalidateTime: stop.invalidate_time
-    };
-}
-
-function processAlert(alert?: Alert) {
-    return alert && {
-        id: alert._id,
-        schoolID: alert.school_id,
-        type: alert.type,
-        title: alert.title,
-        content: alert.content,
-        dismissable: alert.can_dismiss,
-        start: new Date(alert.start_date * 1000),
-        end: new Date(alert.end_date * 1000)
-    };
-}
-
-function processDismissalData(data?: DismissalRange) {
-    return data && {
-        id: data._id,
-        schoolID: data.school_id,
-        daysOfWeek: data.days_of_week,
-        startDate: new Date(data.start_date * 1000),
-        endDate: new Date(data.end_date * 1000),
-        dismissalTime: data.dismissal_time,
-        alertStartTime: data.start_time,
-        alertEndTime: data.end_time
-    };
-}
-
+/**
+ * Resolvers for the GraphQL API.
+ */
 const resolvers: IResolvers<any, any> = {
     DateTime: Scalars.DateTime,
 
