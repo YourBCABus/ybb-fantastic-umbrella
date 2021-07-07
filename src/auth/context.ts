@@ -69,7 +69,7 @@ export async function authContext(provider: Provider, req: Request): Promise<Aut
  * Fetches the scopes the current auth context has for a given school.
  * @param context - current auth context
  * @param schoolID - school ID
- * @returns a list of public scopes and a list of scopes for this user in the school
+ * @returns a list of public scopes and a list of scopes for this user/client in the school
  */
 export async function getSchoolScopes(context: AuthContext, schoolID: string): Promise<{public: Set<string>, user: Set<string>}> {
     if (!context.permissionCache.has(schoolID)) {
@@ -79,6 +79,11 @@ export async function getSchoolScopes(context: AuthContext, schoolID: string): P
             let userScopes: Set<string> | undefined;
             if (context.user) {
                 const permission = await Models.Permission.findOne({school_id: schoolID, user_id: context.user._id.toString()});
+                if (permission) {
+                    userScopes = new Set(permission.scopes);
+                }
+            } else if (context.client) {
+                const permission = await Models.ClientPermission.findOne({school_id: schoolID, client_id: context.client._id.toString()});
                 if (permission) {
                     userScopes = new Set(permission.scopes);
                 }

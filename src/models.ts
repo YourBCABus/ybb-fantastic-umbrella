@@ -1,6 +1,6 @@
 import { model, Schema, Document } from 'mongoose';
 
-import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, DismissalRange, Alert, User, Permission, Client} from './interfaces';
+import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, DismissalRange, Alert, User, Permission, Client, ClientPermission} from './interfaces';
 
 /**
  * Mongoose models used by YourBCABus.
@@ -22,6 +22,12 @@ export namespace Models {
     user_id: {type: String, required: true},
     school_id: {type: String, required: true},
     scopes: {type: [String], required: true}
+  }));
+
+  export const ClientPermission = model<ClientPermission & Document>("ClientPermission", new Schema({
+    client_id: { type: String, required: true },
+    school_id: { type: String, required: true },
+    scopes: { type: [String], required: true }
   }));
 
   /** @deprecated */
