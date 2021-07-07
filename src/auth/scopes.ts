@@ -19,3 +19,13 @@ export const userScopes = new Set([
 export const schoolScopes = new Set([
     "read"
 ]);
+
+/**
+ * List of scopes that can be assigned to a user only if they are allowed for the user.
+ * 
+ * @remarks
+ * Any permissions that could constitute admin access should go here.
+ */
+export const restrictedScopes = new Set([
+    "test_restricted"
+]);

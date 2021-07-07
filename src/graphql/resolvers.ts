@@ -3,7 +3,7 @@ import { Color } from '../interfaces';
 import { Models } from '../models';
 import { isValidId } from '../utils';
 import Scalars from './datehandling';
-import { authenticateSchoolScope, authenticateUserScope } from '../auth/context';
+import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope } from '../auth/context';
 import { processSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
 import Context from './context';
 

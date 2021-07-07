@@ -109,6 +109,7 @@ export interface User {
   _id: ObjectId;
   google_id?: string;
   email: string;
+  restricted_scopes?: string[];
 }
 
 /**
@@ -117,7 +118,7 @@ export interface User {
 export interface Client {
   _id: ObjectId;
   secret: string;
-  client_credentials_scopes: string[];
+  restricted_scopes?: string[];
   redirect_uris: string[];
 }
 

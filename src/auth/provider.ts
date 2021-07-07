@@ -2,7 +2,7 @@ import { Adapter, AdapterPayload, Provider } from 'oidc-provider';
 import { Config } from '../interfaces';
 import { Models } from '../models';
 import mongoose from 'mongoose';
-import { schoolScopes, userScopes } from './scopes';
+import { restrictedScopes, schoolScopes, userScopes } from './scopes';
 import { isValidId } from '../utils';
 
 /**
@@ -122,7 +122,8 @@ export default function makeProvider(config: Config) {
         },
         scopes: [
             ...userScopes.values(),
-            ...schoolScopes.values()
+            ...schoolScopes.values(),
+            ...restrictedScopes.values()
         ],
         async findAccount(_ctx, id) {
             const user = await Models.User.findById(id);

@@ -8,13 +8,14 @@ import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, Dismis
 export namespace Models {
   export const User = model<User & Document>("User", new Schema({
     google_id: {type: String, unique: true},
-    email: String
+    email: String,
+    restricted_scopes: [String]
   }));
 
   export const Client = model<Client & Document>("Client", new Schema({
     secret: {type: String, required: true},
-    client_credentials_scopes: {type: [String], required: true, default: []},
-    redirect_uris: {type: [String], required: true, default: []}
+    redirect_uris: {type: [String], required: true, default: []},
+    restricted_scopes: [String]
   }));
 
   export const Permission = model<Permission & Document>("Permission", new Schema({
