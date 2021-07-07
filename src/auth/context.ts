@@ -78,7 +78,7 @@ export async function getSchoolScopes(context: AuthContext, schoolID: string): P
             context.permissionCache.set(schoolID, {public: new Set(), user: new Set()});
         }
     }
-    return context.permissionCache.get(schoolID);
+    return context.permissionCache.get(schoolID)!;
 }
 
 /**
