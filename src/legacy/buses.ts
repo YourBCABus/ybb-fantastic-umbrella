@@ -1,7 +1,12 @@
 import {Bus, ServerProviderArguments} from "../interfaces";
 import {Models} from "../models";
 import {authenticate, isValidId} from "../utils";
-import {BusLocationUpdateRequest} from "../index";
+export interface BusLocationUpdateRequest {
+  locations: string[];
+  associate_time?: boolean;
+  invalidate_time: any;
+  source: string;
+}
 
 export default ({app, config}: ServerProviderArguments) => {
   app.get("/schools/:school/buses", async (_, res, next) => {

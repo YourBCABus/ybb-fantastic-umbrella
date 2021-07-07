@@ -3,21 +3,73 @@ import { ObjectId } from "mongoose";
 import { ClientMetadata, JWK } from "oidc-provider";
 import {GoogleConfig} from "./auth/google";
 
+/**
+ * Contents of config.json, the configuration file for the server.
+ */
 export interface Config {
+  /**
+   * MongoDB connection url.
+   */
   mongo: string;
+
+  /**
+   * Port to listen to.
+   */
   port: number;
+
+  /**
+   * IP address to bind to.
+   */
   bindTo: string;
+
+  /**
+   * Configuration for Google OAuth.
+   */
   google: GoogleConfig;
+
+  /**
+   * Secret used when generating OAuth state tokens.
+   */
   stateTokenSecret: string;
+
+  /**
+   * Domain used for the OAuth state cookie.
+   */
   stateTokenDomain?: string;
+
+  /**
+   * Issuer for YourBCABus auth tokens.
+   */
   authIssuer: string;
+
+  /**
+   * List of OAuth clients for YourBCABus.
+   */
   authClients: ClientMetadata[];
+
+  /**
+   * List of keys used when generating auth sessions.
+   */
   authCookieKeys: string[];
+
+  /**
+   * List of JWKs used for YourBCABus auth tokens.
+   */
   authJWKKeys: JWK[];
 }
 
+/**
+ * Arguments given to each legacy API route provider.
+ */
 export interface ServerProviderArguments {
+  /**
+   * Express application used by the server.
+   */
   app: Application;
+
+  /**
+   * Configuration for the server.
+   */
   config: Config;
 }
 
@@ -39,38 +91,67 @@ export interface AuthToken extends Permissions {
   admin?: boolean;
 }
 
+/**
+ * A YourBCABus user.
+ * 
+ * @remarks
+ * Currently, only Google-based users are supported.
+ */
 export interface User {
   _id: ObjectId;
   google_id?: string;
   email: string;
 }
 
+/**
+ * Permissions for a given user in a given school.
+ */
 export interface Permission {
   _id: ObjectId;
   user_id: string;
   school_id: string;
+
+  /**
+   * List of scopes the user is allowed to access in addition to the school's public_scopes.
+   */
   scopes: string[];
 }
 
+/**
+ * A coordinate.
+ */
 export interface Coordinate {
   latitude: number;
   longitude: number;
 }
 
+/**
+ * A GeoJSON point.
+ */
 export interface Point {
-  type: string;
+  type: string; // should be "point"
   coordinates: number[];
 }
 
+/**
+ * A school which can hold a series of buses.
+ */
 export interface School {
   _id: any;
   name?: string;
   location?: Coordinate;
   available: boolean;
   timezone?: string;
+
+  /**
+   * List of scopes that can be used in this school without authentication.
+   */
   public_scopes?: string[];
 }
 
+/**
+ * A bus.
+ */
 export interface Bus {
   _id: any;
   school_id: string;
@@ -86,6 +167,9 @@ export interface Bus {
   numbers?: number[];
 }
 
+/**
+ * An entry in a bus's history of locations.
+ */
 export interface BusLocationHistory {
   _id: any;
   bus_id: string;
@@ -94,6 +178,9 @@ export interface BusLocationHistory {
   source: string;
 }
 
+/**
+ * A stop on a bus's route.
+ */
 export interface Stop {
   _id: any;
   bus_id: string;
@@ -107,6 +194,10 @@ export interface Stop {
   available: boolean;
 }
 
+/**
+ * A suggestion to add a new stop to the database.
+ * @deprecated
+ */
 export interface StopSuggestion {
   _id: any;
   bus_id: string;
@@ -115,6 +206,9 @@ export interface StopSuggestion {
   source?: string;
 }
 
+/**
+ * Metadata describing a school's time of dismissal for a given range of days.
+ */
 export interface DismissalRange {
   _id: any;
   school_id: string;
@@ -127,6 +221,9 @@ export interface DismissalRange {
   days_of_week: number[];
 }
 
+/**
+ * A color used in the YourBCABus UI.
+ */
 export interface Color {
   name?: string;
   r: number;
@@ -136,6 +233,9 @@ export interface Color {
   appearances?: Record<string, {name?: string, r: number, g: number, b: number, alpha: number}>;
 }
 
+/**
+ * A message displayed to YourBCABus users.
+ */
 export interface Alert {
   _id: any;
   school_id: string;
@@ -148,6 +248,11 @@ export interface Alert {
   can_dismiss: boolean;
 }
 
+/**
+ * An alert's `type`.
+ * 
+ * @see {@link Alert.type}
+ */
 export interface AlertType {
   name: string;
   color: Color;

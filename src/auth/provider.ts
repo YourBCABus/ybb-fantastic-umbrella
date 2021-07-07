@@ -4,6 +4,10 @@ import { Models } from '../models';
 import mongoose from 'mongoose';
 import { schoolScopes, userScopes } from './scopes';
 
+/**
+ * MongoDB adapter for oidc-provider.
+ * @see {@link https://github.com/panva/node-oidc-provider/blob/main/example/adapters/mongodb.js}
+ */
 class DBAdapter implements Adapter {
     constructor(private name: string) {}
 
@@ -66,6 +70,11 @@ class DBAdapter implements Adapter {
     }
 }
 
+/**
+ * Creates an OpenID Connect provider to handle OpenID Connect server tasks.
+ * @param config - server configuration
+ * @returns an oidc-provider Provider
+ */
 export default function makeProvider(config: Config) {
     return new Provider(config.authIssuer, {
         clients: config.authClients,

@@ -1,5 +1,8 @@
 import { GraphQLScalarType, Kind } from 'graphql';
 
+/**
+ * GraphQL scalars used in YourBCABus.
+ */
 namespace Scalars {
     export const DateTime = new GraphQLScalarType({
         name: "DateTime",
@@ -31,7 +34,6 @@ namespace Scalars {
             return null;
         }
     });
-
     export const Time = new GraphQLScalarType({
         name: "Time",
         description: "A time without a date, given in ISO 8601 format. Usually provided in the school's timeZone.",
