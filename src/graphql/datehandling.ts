@@ -22,7 +22,7 @@ namespace Scalars {
             return date;
         },
         parseLiteral(ast) {
-            let parsed: Date;
+            let parsed: Date | undefined;
             if (ast.kind === Kind.STRING) {
                 parsed = new Date(ast.value);
             } else if (ast.kind === Kind.INT) {
