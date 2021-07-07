@@ -50,11 +50,6 @@ export interface Config {
   authIssuer: string;
 
   /**
-   * List of OAuth clients for YourBCABus.
-   */
-  authClients: ClientMetadata[];
-
-  /**
    * List of keys used when generating auth sessions.
    */
   authCookieKeys: string[];
@@ -117,6 +112,16 @@ export interface User {
 }
 
 /**
+ * OAuth client.
+ */
+export interface Client {
+  _id: ObjectId;
+  secret: string;
+  client_credentials_scopes: string[];
+  redirect_uris: string[];
+}
+
+/**
  * Permissions for a given user in a given school.
  */
 export interface Permission {
@@ -126,6 +131,20 @@ export interface Permission {
 
   /**
    * List of scopes the user is allowed to access in addition to the school's public_scopes.
+   */
+  scopes: string[];
+}
+
+/**
+ * Permissions for a given client in a given school (when using the client_credentials grant type).
+ */
+export interface ClientPermission {
+  _id: ObjectId;
+  client_id: string;
+  school_id: string;
+
+  /**
+   * List of scopes the client is allowed to access in addition to the school's public_scopes.
    */
   scopes: string[];
 }

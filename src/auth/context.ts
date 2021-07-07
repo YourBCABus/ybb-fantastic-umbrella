@@ -1,6 +1,6 @@
 import { Provider } from 'oidc-provider';
 import { Request } from 'express';
-import { User } from '../interfaces';
+import { User, Client } from '../interfaces';
 import { Models } from '../models';
 import { AuthenticationError } from 'apollo-server-express';
 import { schoolScopes, userScopes } from './scopes';
@@ -13,6 +13,11 @@ export interface AuthContext {
      * Current user.
      */
     user?: User;
+
+    /**
+     * Current client.
+     */
+    client?: Client;
 
     /**
      * List of user scopes that the client has access to.
@@ -47,12 +52,13 @@ export async function authContext(provider: Provider, req: Request): Promise<Aut
         return {scopes: new Set(), permissionCache: new Map()};
     }
 
+    const client = accessToken.clientId && await Models.Client.findById(accessToken.clientId);
     const user = await Models.User.findById(accessToken.accountId);
     if (!user) {
-        return {scopes: new Set(), permissionCache: new Map()};
+        return {scopes: accessToken.scopes, permissionCache: new Map(), client: client || undefined};
     }
 
-    return {user, scopes: accessToken.scopes, permissionCache: new Map()};
+    return {user, scopes: accessToken.scopes, permissionCache: new Map(), client: client || undefined};
 }
 
 /**

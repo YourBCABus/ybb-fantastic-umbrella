@@ -3,6 +3,7 @@ import { Config } from '../interfaces';
 import { Models } from '../models';
 import mongoose from 'mongoose';
 import { schoolScopes, userScopes } from './scopes';
+import { isValidId } from '../utils';
 
 /**
  * MongoDB adapter for oidc-provider.
@@ -16,6 +17,8 @@ class DBAdapter implements Adapter {
     }
 
     async upsert(_id: string, payload: AdapterPayload, expiresIn: number) {
+        if (this.name === "Client") throw new Error("Not implemented");
+
         let expires;
         if (expiresIn) expires = new Date(Date.now() + expiresIn * 1000);
 
@@ -23,16 +26,30 @@ class DBAdapter implements Adapter {
     }
 
     async find(_id: string): Promise<AdapterPayload | undefined> {
-        const result = await this.coll().find(
-            {_id},
-            // @ts-ignore
-            {payload: 1}
-        ).limit(1).next();
-        if (!result) return undefined;
-        return result.payload as AdapterPayload;
+        if (this.name === "Client") {
+            if (!isValidId(_id)) return undefined;
+            const client = await Models.Client.findById(_id);
+            if (!client) return undefined;
+            return {
+                client_id: client._id.toString(),
+                client_secret: client.secret,
+                grant_types: ["client_credentials", "authorization_code", "refresh_token"],
+                redirect_uris: client.redirect_uris
+            } as AdapterPayload;
+        } else {
+            const result = await this.coll().find(
+                { _id },
+                // @ts-ignore
+                { payload: 1 }
+            ).limit(1).next();
+            if (!result) return undefined;
+            return result.payload as AdapterPayload;
+        }
     }
 
     async findByUserCode(userCode: string): Promise<AdapterPayload | undefined> {
+        if (this.name === "Client") throw new Error("Not implemented");
+
         const result = await this.coll().find(
             {"payload.userCode": userCode},
             // @ts-ignore
@@ -44,6 +61,8 @@ class DBAdapter implements Adapter {
     }
 
     async findByUid(uid: string): Promise<AdapterPayload | undefined> {
+        if (this.name === "Client") throw new Error("Not implemented");
+
         const result = await this.coll().find(
             {"payload.uid": uid},
             // @ts-ignore
@@ -55,6 +74,7 @@ class DBAdapter implements Adapter {
     }
 
     async consume(_id: string) {
+        if (this.name === "Client") throw new Error("Not implemented");
         await this.coll().findOneAndUpdate(
             {_id},
             {$set: {"payload.consumed": Math.floor(Date.now() / 1000)}}
@@ -62,10 +82,12 @@ class DBAdapter implements Adapter {
     }
 
     async destroy(_id: string) {
+        if (this.name === "Client") throw new Error("Not implemented");
         await this.coll().deleteOne({_id});
     }
 
     async revokeByGrantId(grantId: string) {
+        if (this.name === "Client") throw new Error("Not implemented");
         await this.coll().deleteMany({"payload.grantId": grantId});
     }
 }
@@ -77,13 +99,13 @@ class DBAdapter implements Adapter {
  */
 export default function makeProvider(config: Config) {
     return new Provider(config.authIssuer, {
-        clients: config.authClients,
         cookies: {
             keys: config.authCookieKeys
         },
         features: {
             devInteractions: {enabled: false},
-            revocation: {enabled: true}
+            revocation: {enabled: true},
+            clientCredentials: {enabled: true}
         },
         jwks: {
             keys: config.authJWKKeys
@@ -115,6 +137,9 @@ export default function makeProvider(config: Config) {
                 }
             };
         },
-        adapter: DBAdapter
+        adapter: DBAdapter,
+        renderError(ctx, out, error) {
+            console.error(error);
+        }
     });
 }
