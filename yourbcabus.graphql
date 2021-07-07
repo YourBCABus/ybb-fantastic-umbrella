@@ -12,8 +12,6 @@ type Query {
     alert(id: ID!): Alert @cost(complexity: 2)
     dismissalTimeData(id: ID!): DismissalTimeData @cost(complexity: 2)
 
-    bca: School @deprecated(reason: "Use school(id) instead.") @cost(complexity: 2)
-
     test: String!
 }
 

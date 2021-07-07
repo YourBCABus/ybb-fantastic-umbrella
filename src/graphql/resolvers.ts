@@ -63,12 +63,6 @@ const resolvers: IResolvers<any, Context> = {
             return processDismissalData(dismissalData);
         },
 
-        async bca(_a, _b, context) {
-            const id = "5bca51e785aa2627e14db459";
-            await authenticateSchoolScope(context, ["read"], id);
-            return processSchool(await Models.School.findById(id));
-        },
-
         async test(_a, _b, context) {
             authenticateUserScope(context, ["test"]);
             return "test";
