@@ -71,7 +71,7 @@ export namespace Models {
     bus_id: {type: String, required: true},
     locations: {type: [String], required: true},
     time: Date,
-    source: {type: String, required: true}
+    source: String
   }));
 
   const stopSchema = new Schema({

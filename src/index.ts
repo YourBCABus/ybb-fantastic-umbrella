@@ -6,7 +6,7 @@ import express from 'express';
 import { json } from 'body-parser';
 import mongoose from 'mongoose';
 import * as admin from 'firebase-admin';
-import { ApolloServer, gql } from 'apollo-server-express';
+import { ApolloServer, gql, PubSub } from 'apollo-server-express';
 import costAnalysis from 'graphql-cost-analysis';
 import exphbs from 'express-handlebars';
 
@@ -21,10 +21,12 @@ import makeAuthRoutes from './auth/routes';
 import resolvers from './graphql/resolvers';
 import makeProvider from './auth/provider';
 import { authContext } from './auth/context';
+import Context from './graphql/context';
+import { setupPubsub } from './graphql/pubsub';
 
 // Read the config and Firebase service account.
 const config: Config = JSON.parse(fs.readFileSync(path.join(__dirname, "../config.json"), "utf8"));
-let serviceAccount: admin.ServiceAccount;
+let serviceAccount: admin.ServiceAccount | undefined;
 
 try {
   serviceAccount = JSON.parse(fs.readFileSync(path.join(__dirname, "../service-account.json"), "utf8"));
@@ -47,6 +49,10 @@ if (serviceAccount) {
   });
 }
 
+// Set up the Pub/Sub event bus.
+const pubsub = new PubSub(); // TODO: Make this more scalable
+setupPubsub(pubsub);
+
 // Set up the GraphQL server.
 const server = new ApolloServer({
   typeDefs,
@@ -58,8 +64,12 @@ const server = new ApolloServer({
     })
   ],
   playground: true,
-  async context({req}) {
-    return {...(await authContext(provider, req))};
+  async context(context): Promise<Context> {
+    return {
+      ...context,
+      ...(await authContext(provider, context.req)),
+      pubsub
+    };
   }
 });
 
@@ -68,6 +78,7 @@ const app = express();
 app.engine("hbs", exphbs({extname: ".hbs"}));
 app.set("view engine", "hbs");
 app.set("json spaces", "\t"); // Pretty-print JSON
+// @ts-ignore
 app.use("/schools", cors()); // CORS support for the legacy REST API
 app.use(json()); // Body parsing stuff
 

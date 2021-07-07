@@ -5,11 +5,12 @@ import { isValidId } from '../utils';
 import Scalars from './datehandling';
 import { authenticateSchoolScope, authenticateUserScope } from '../auth/context';
 import { processSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
+import Context from './context';
 
 /**
  * Resolvers for the GraphQL API.
  */
-const resolvers: IResolvers<any, any> = {
+const resolvers: IResolvers<any, Context> = {
     DateTime: Scalars.DateTime,
 
     Time: Scalars.Time,
@@ -138,12 +139,12 @@ const resolvers: IResolvers<any, any> = {
         appearances(color: Color) {
             return color.appearances ? Object.keys(color.appearances).map(appearanceName => ({
                 appearance: appearanceName,
-                ...color.appearances[appearanceName]
+                ...color.appearances![appearanceName]
             })) : [];
         },
         
         color(color: Color, {appearance}: {appearance: string}) {
-            const resolved = color.appearances[appearance];
+            const resolved = color.appearances && color.appearances[appearance];
             if (resolved) {
                 return {appearance, ...resolved};
             } else {

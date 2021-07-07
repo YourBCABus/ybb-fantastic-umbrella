@@ -16,8 +16,8 @@ export const isValidId = (id: string) => id && id.match(/^[0-9a-fA-F]{24}$/);
  * @param permission - permission required to access the API endpoint
  * @returns an Express middleware function
  */
-export const authenticate = (permission?: string) => {
-    let components = permission && permission.split(".");
+export const authenticate = (permission: string) => {
+    let components = permission.split(".");
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
             let authorization = req.get("Authorization");
@@ -82,7 +82,7 @@ function processPoint(point?: Point) {
  * @param school - school
  * @returns processed school
  */
-export function processSchool(school?: School) {
+export function processSchool(school?: School | null) {
     return school && {
         id: school._id,
         name: school.name,
@@ -97,7 +97,7 @@ export function processSchool(school?: School) {
  * @param bus - bus
  * @returns processed bus
  */
-export function processBus(bus?: Bus) {
+export function processBus(bus?: Bus | null) {
     return bus && {
         id: bus._id,
         schoolID: bus.school_id,
@@ -117,7 +117,7 @@ export function processBus(bus?: Bus) {
  * @param entry - bus location history entry
  * @returns processed bus location history entry
  */
-export function processHistoryEntry(entry?: BusLocationHistory) {
+export function processHistoryEntry(entry?: BusLocationHistory | null) {
     return entry && {
         busID: entry.bus_id,
         time: entry.time,
@@ -131,7 +131,7 @@ export function processHistoryEntry(entry?: BusLocationHistory) {
  * @param stop - stop
  * @returns processed stop
  */
-export function processStop(stop?: Stop) {
+export function processStop(stop?: Stop | null) {
     return stop && {
         id: stop._id,
         busID: stop.bus_id,
@@ -150,7 +150,7 @@ export function processStop(stop?: Stop) {
  * @param alert - alert
  * @returns processed alert
  */
-export function processAlert(alert?: Alert) {
+export function processAlert(alert?: Alert | null) {
     return alert && {
         id: alert._id,
         schoolID: alert.school_id,
@@ -168,7 +168,7 @@ export function processAlert(alert?: Alert) {
  * @param data - dismissal time data
  * @returns processed dismissal time data
  */
-export function processDismissalData(data?: DismissalRange) {
+export function processDismissalData(data?: DismissalRange | null) {
     return data && {
         id: data._id,
         schoolID: data.school_id,

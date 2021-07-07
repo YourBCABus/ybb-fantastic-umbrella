@@ -44,7 +44,7 @@ type LocationHistoryEntry {
     bus: Bus! @cost(complexity: 4)
     locations: [String!]!
     time: DateTime
-    source: String!
+    source: String
 }
 
 type Bus {

@@ -153,7 +153,7 @@ export default ({app}: ServerProviderArguments) => {
         return res.status(400).json({error: "bad_location"});
       }
 
-      let time: Date;
+      let time: Date | undefined;
       if (req.body.time) {
         time = new Date(req.body.time);
 
