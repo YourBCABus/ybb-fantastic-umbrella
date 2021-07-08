@@ -18,7 +18,20 @@ export const userScopes = new Set([
  */
 export const schoolScopes = new Set([
     "read",
-    "bus.create"
+    "bus.create",
+    "bus.update",
+    "bus.updateStatus",
+    "bus.delete",
+    "stop.create",
+    "stop.update",
+    "stop.delete",
+    "alert.create",
+    "alert.update",
+    "alert.delete",
+    "dismissalTimeData.create",
+    "dismissalTimeData.update",
+    "dismissalTimeData.delete",
+    "school.manage"
 ]);
 
 /**
