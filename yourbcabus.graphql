@@ -15,10 +15,20 @@ type Query {
     test: String!
 }
 
+type Mutation {
+    createSchool(school: SchoolInput!): School!
+    createBus(schoolID: ID!, bus: BusInput!): Bus!
+}
+
 scalar DateTime
 scalar Time
 
 type Location {
+    lat: Float!
+    long: Float!
+}
+
+input LocationInput {
     lat: Float!
     long: Float!
 }
@@ -35,6 +45,14 @@ type School {
     allDismissalTimeData: [DismissalTimeData!]! @cost(complexity: 4)
     
     timeZone: String
+}
+
+input SchoolInput {
+    name: String
+    location: LocationInput
+    available: Boolean!
+    timeZone: String
+    publicScopes: [String!]!
 }
 
 type LocationHistoryEntry {
@@ -60,6 +78,14 @@ type Bus {
 
     recentHistory: [LocationHistoryEntry!]! @cost(complexity: 4)
     stops: [Stop!]! @cost(complexity: 4)
+}
+
+input BusInput {
+    otherNames: [String!]!
+    available: Boolean!
+    name: String
+    company: String
+    phone: [String!]!
 }
 
 type Stop {

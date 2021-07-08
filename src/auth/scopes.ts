@@ -17,7 +17,8 @@ export const userScopes = new Set([
  * Any permissions that can affect a school should go here.
  */
 export const schoolScopes = new Set([
-    "read"
+    "read",
+    "bus.create"
 ]);
 
 /**
@@ -27,5 +28,5 @@ export const schoolScopes = new Set([
  * Any permissions that could constitute admin access should go here.
  */
 export const restrictedScopes = new Set([
-    "test_restricted"
+    "admin.school.create"
 ]);

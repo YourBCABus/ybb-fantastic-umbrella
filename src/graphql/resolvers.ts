@@ -6,6 +6,7 @@ import Scalars from './datehandling';
 import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope } from '../auth/context';
 import { processSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
 import Context from './context';
+import { schoolScopes } from '../auth/scopes';
 
 /**
  * Resolvers for the GraphQL API.
@@ -64,8 +65,63 @@ const resolvers: IResolvers<any, Context> = {
         },
 
         async test(_a, _b, context) {
-            authenticateUserScope(context, ["test"]);
+            await authenticateUserScope(context, ["test"]);
             return "test";
+        }
+    },
+
+    Mutation: {
+        async createSchool(_, { school: { name, location, available, timeZone, publicScopes }}: {
+            school: {
+                name?: string,
+                location?: { lat: number, long: number },
+                available: boolean,
+                timeZone?: string,
+                publicScopes: string[]
+            }
+        }, context) {
+            await authenticateRestrictedScope(context, ["admin.school.create"]);
+
+            const school = new Models.School({
+                name,
+                location: location && {latitude: location.lat, longitude: location.long},
+                available,
+                timezone: timeZone,
+                public_scopes: []
+            });
+
+            if (publicScopes.find(scope => !schoolScopes.has(scope)) !== undefined) throw new UserInputError("Invalid scopes");
+            const scopes = new Set(publicScopes);
+            school.public_scopes = [...scopes.values()];
+
+            await school.save();
+            return processSchool(school);
+        },
+
+        async createBus(_, { schoolID, bus: { otherNames, available, name, company, phone } }: {
+            schoolID: string,
+            bus: {
+                otherNames: string[],
+                available: boolean,
+                name?: string,
+                company?: string,
+                phone: string[]
+            }
+        }, context) {
+            if (!isValidId(schoolID)) throw new UserInputError("bad_school_id");
+            await authenticateSchoolScope(context, ["bus.create"], schoolID);
+
+            const bus = new Models.Bus({
+                school_id: schoolID,
+                other_names: otherNames,
+                available,
+                name,
+                company,
+                phone
+            });
+
+            await bus.save();
+            return processBus(bus);
         }
     },
 
