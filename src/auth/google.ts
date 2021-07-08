@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+import { OAuth2Client } from 'google-auth-library';
 
 /**
  * Google OAuth configuration.
@@ -15,5 +15,5 @@ export interface GoogleConfig {
  * @returns a Google OAuth2 client
  */
 export default function makeGoogleClient({clientID, clientSecret, redirectURI}: GoogleConfig) {
-    return new google.auth.OAuth2(clientID, clientSecret, redirectURI);
+    return new OAuth2Client(clientID, clientSecret, redirectURI);
 }
