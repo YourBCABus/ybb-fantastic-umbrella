@@ -225,7 +225,7 @@ type Alert {
 input AlertInput {
     start: DateTime!
     end: DateTime!
-    type: AlertTypeInput!
+    type: AlertTypeInput
     title: String!
     content: String!
     dismissable: Boolean!
