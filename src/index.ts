@@ -40,7 +40,7 @@ try {
 const typeDefs = gql(fs.readFileSync(path.join(__dirname, "../yourbcabus.graphql"), "utf8"));
 
 // Connect to the database.
-mongoose.connect(config.mongo, {useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(config.mongo, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
 
 // Initialize Firebase.
 if (serviceAccount) {
