@@ -1,4 +1,4 @@
-import { Adapter, AdapterPayload, Provider } from 'oidc-provider';
+import { Adapter, AdapterPayload, Configuration, Provider } from 'oidc-provider';
 import { Config } from '../interfaces';
 import { Models } from '../models';
 import mongoose from 'mongoose';
@@ -95,9 +95,10 @@ class DBAdapter implements Adapter {
 /**
  * Creates an OpenID Connect provider to handle OpenID Connect server tasks.
  * @param config - server configuration
+ * @param renderError - function called to render an error page
  * @returns an oidc-provider Provider
  */
-export default function makeProvider(config: Config) {
+export default function makeProvider(config: Config, renderError: Configuration["renderError"]) {
     return new Provider(config.authIssuer, {
         cookies: {
             keys: config.authCookieKeys
@@ -139,8 +140,6 @@ export default function makeProvider(config: Config) {
             };
         },
         adapter: DBAdapter,
-        renderError(ctx, out, error) {
-            console.error(error);
-        }
+        renderError
     });
 }

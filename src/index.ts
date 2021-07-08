@@ -23,6 +23,7 @@ import makeProvider from './auth/provider';
 import { authContext } from './auth/context';
 import Context from './graphql/context';
 import { setupPubsub } from './graphql/pubsub';
+import errorPage from './errorpage';
 
 // Read the config and Firebase service account.
 const config: Config = JSON.parse(fs.readFileSync(path.join(__dirname, "../config.json"), "utf8"));
@@ -75,7 +76,7 @@ const server = new ApolloServer({
 
 // Set up the Express application with Handlebars support.
 const app = express();
-app.engine("hbs", exphbs({extname: ".hbs"}));
+app.engine("hbs", exphbs({ extname: ".hbs" }));
 app.set("view engine", "hbs");
 app.set("json spaces", "\t"); // Pretty-print JSON
 // @ts-ignore
@@ -92,7 +93,7 @@ app.use(json()); // Body parsing stuff
 ].forEach(fn => fn({app, config, serviceAccount}));
 
 // Set up authentication.
-const provider = makeProvider(config);
+const provider = makeProvider(config, errorPage(app));
 app.use("/auth", makeAuthRoutes(config, provider));
 
 // Random easter egg, because why not
