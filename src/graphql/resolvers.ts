@@ -1,13 +1,13 @@
 import { IResolvers, UserInputError } from 'apollo-server-express';
 import { AlertType, Color } from '../interfaces';
 import { Models } from '../models';
-import { convertColorInput, isValidId } from '../utils';
+import { convertColorInput, isValidDaysOfWeek, isValidId } from '../utils';
 import Scalars from './datehandling';
 import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope } from '../auth/context';
 import { processSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
 import Context from './context';
 import { schoolScopes } from '../auth/scopes';
-import { AlertInput } from './inputinterfaces';
+import { AlertInput, DismissalTimeDataInput } from './inputinterfaces';
 
 /**
  * Resolvers for the GraphQL API.
@@ -158,6 +158,27 @@ const resolvers: IResolvers<any, Context> = {
 
             await alert.save();
             return processAlert(alert);
+        },
+
+        async addDismissalTimeData(_, { schoolID, data: { startDate, endDate, dismissalTime, alertStartTime, alertEndTime, daysOfWeek } }: {
+            schoolID: string,
+            data: DismissalTimeDataInput
+        }, context) {
+            if (!isValidId(schoolID)) throw new UserInputError("bad_school_id");
+            if (startDate > endDate) throw new UserInputError("bad_dates");
+            if (!isValidDaysOfWeek(daysOfWeek)) throw new UserInputError("bad_days_of_week");
+            await authenticateSchoolScope(context, ["dismissalTimeData.create"], schoolID);
+            const data = new Models.DismissalRange({
+                school_id: schoolID,
+                start_date: Math.floor(startDate.getTime() / 1000),
+                end_date: Math.floor(endDate.getTime() / 1000),
+                start_time: alertStartTime,
+                end_time: alertEndTime,
+                dismissal_time: dismissalTime,
+                days_of_week: daysOfWeek
+            });
+            await data.save();
+            return processDismissalData(data);
         }
     },
 

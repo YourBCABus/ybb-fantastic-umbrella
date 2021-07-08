@@ -182,11 +182,16 @@ export function processDismissalData(data?: DismissalRange | null) {
     };
 }
 
+/**
+ * Checks if an RGBA color is valid.
+ * @param param0 - RGBA color
+ * @returns true if the color is valid
+ */
 function isValidRGBA({r, g, b, alpha}: {r: number, g: number, b: number, alpha: number}): boolean {
-    if (r < 0 || r > 255) return false;
-    if (g < 0 || g > 255) return false;
-    if (b < 0 || b > 255) return false;
-    if (alpha < 0 || alpha > 255) return false;
+    if (r < 0 || r > 255 || r !== Math.floor(r)) return false;
+    if (g < 0 || g > 255 || g !== Math.floor(r)) return false;
+    if (b < 0 || b > 255 || b !== Math.floor(r)) return false;
+    if (alpha < 0 || alpha > 255 || alpha !== Math.floor(r)) return false;
     return true;
 }
 
@@ -206,4 +211,17 @@ export function convertColorInput(input: AlertColorInput): Color {
         color.appearances![appearance.appearance] = {name: appearance.name, r: appearance.r, g: appearance.g, b: appearance.b, alpha: appearance.alpha};
     });
     return color;
+}
+
+/**
+ * Checks to see if a list of days of the week is valid.
+ * @see {@link DismissalRange.days_of_week}
+ * @param days - list of days of week (numbers from 0 to 6)
+ * @returns true if the list is valid
+ */
+export function isValidDaysOfWeek(days: number[]): boolean {
+    const set = new Set(days);
+    if (days.length !== set.size) return false;
+    if (days.find(day => day !== 0 && day !== 1 && day !== 2 && day !== 3 && day !== 4 && day !== 5 && day !== 6)) return false;
+    return true;
 }

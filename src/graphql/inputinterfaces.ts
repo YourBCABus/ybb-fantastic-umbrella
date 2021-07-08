@@ -22,3 +22,12 @@ interface AlertAppearanceColorInput extends ColorInput {
 export interface AlertColorInput extends ColorInput {
     appearances: AlertAppearanceColorInput[];
 }
+
+export interface DismissalTimeDataInput {
+    startDate: Date;
+    endDate: Date;
+    dismissalTime?: number;
+    alertStartTime?: number;
+    alertEndTime?: number;
+    daysOfWeek: number[];
+}
