@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { School, Bus, Stop, Coordinate, BusLocationHistory, Alert, DismissalRange, Point } from './interfaces';
+import { School, Bus, Stop, Coordinate, BusLocationHistory, Alert, DismissalRange, Point, Color } from './interfaces';
 import crypto from "crypto";
 import { Models } from "./models";
+import { AlertColorInput } from "./graphql/inputinterfaces";
 
 /**
  * A utility function that checks whether a given string is a valid MongoDB object ID.
@@ -179,4 +180,30 @@ export function processDismissalData(data?: DismissalRange | null) {
         alertStartTime: data.start_time,
         alertEndTime: data.end_time
     };
+}
+
+function isValidRGBA({r, g, b, alpha}: {r: number, g: number, b: number, alpha: number}): boolean {
+    if (r < 0 || r > 255) return false;
+    if (g < 0 || g > 255) return false;
+    if (b < 0 || b > 255) return false;
+    if (alpha < 0 || alpha > 255) return false;
+    return true;
+}
+
+/**
+ * Converts a {@link AlertColorInput} to a {@link Color}, throwing if the color is invalid.
+ * @param input - AlertColorInput object
+ * @returns a Color object
+ * @throws if input is invalid
+ */
+export function convertColorInput(input: AlertColorInput): Color {
+    if (!isValidRGBA(input)) throw new Error("Bad color");
+    let color: Color = {name: input.name, r: input.r, g: input.g, b: input.b, alpha: input.alpha, appearances: {}}
+    input.appearances.forEach(appearance => {
+        if (color.appearances![appearance.appearance]) throw new Error("Bad color");
+        if (appearance.appearance === "__proto__" || appearance.appearance === "prototype") throw new Error("Bad color");
+        if (!isValidRGBA(appearance)) throw new Error("Bad color");
+        color.appearances![appearance.appearance] = {name: appearance.name, r: appearance.r, g: appearance.g, b: appearance.b, alpha: appearance.alpha};
+    });
+    return color;
 }

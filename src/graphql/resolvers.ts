@@ -1,12 +1,13 @@
 import { IResolvers, UserInputError } from 'apollo-server-express';
-import { Color } from '../interfaces';
+import { AlertType, Color } from '../interfaces';
 import { Models } from '../models';
-import { isValidId } from '../utils';
+import { convertColorInput, isValidId } from '../utils';
 import Scalars from './datehandling';
 import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope } from '../auth/context';
 import { processSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
 import Context from './context';
 import { schoolScopes } from '../auth/scopes';
+import { AlertInput } from './inputinterfaces';
 
 /**
  * Resolvers for the GraphQL API.
@@ -122,6 +123,41 @@ const resolvers: IResolvers<any, Context> = {
 
             await bus.save();
             return processBus(bus);
+        },
+
+        async createAlert(_, { schoolID, alert: { start, end, type, title, content, dismissable } }: {
+            schoolID: string,
+            alert: AlertInput
+        }, context) {
+            if (!isValidId(schoolID)) throw new UserInputError("bad_school_id");
+
+            let alertType: AlertType | undefined;
+            if (type) {
+                try {
+                    alertType = {name: type.name, color: convertColorInput(type.color)}
+                } catch (_) {
+                    throw new UserInputError("bad_color");
+                }
+            }
+
+            if (start > end) {
+                throw new UserInputError("bad_dates");
+            }
+
+            await authenticateSchoolScope(context, ["alert.create"], schoolID);
+
+            const alert = new Models.Alert({
+                school_id: schoolID,
+                start_date: Math.floor(start.getTime() / 1000),
+                end_date: Math.floor(end.getTime() / 1000),
+                type: alertType,
+                title,
+                content,
+                can_dismiss: dismissable
+            });
+
+            await alert.save();
+            return processAlert(alert);
         }
     },
 
