@@ -62,7 +62,8 @@ export namespace Models {
     },
     available: {type: Boolean, required: true, default: true},
     timezone: String,
-    public_scopes: [String]
+    public_scopes: [String],
+    legacy_api_enabled: Boolean
   }));
 
   export const Bus = model<Bus & Document>("Bus", new Schema({
