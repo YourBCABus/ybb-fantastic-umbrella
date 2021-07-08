@@ -4,7 +4,7 @@ import { Models } from '../models';
 import { isValidId } from '../utils';
 import Scalars from './datehandling';
 import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope } from '../auth/context';
-import { processSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
+import { processSchool, processRedactedSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
 import Context from './context';
 import { schoolScopes } from '../auth/scopes';
 
@@ -21,6 +21,12 @@ const resolvers: IResolvers<any, Context> = {
             if (!isValidId(id)) throw new UserInputError("bad_school_id");
             await authenticateSchoolScope(context, ["read"], id);
             return processSchool(await Models.School.findById(id));
+        },
+
+        async schools() {
+            let schools = await Models.School.find({});
+            let redactedSchools = schools.map(processRedactedSchool);
+            return redactedSchools;
         },
 
         async bus(_, {id}: {id: string}, context) {

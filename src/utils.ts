@@ -92,6 +92,15 @@ export function processSchool(school?: School | null) {
     }
 }
 
+export function processRedactedSchool(school?: School | null) {
+    return school && {
+        id: school._id,
+        name: school.name,
+        location: processCoordinate(school.location),
+        readable: school.public_scopes && school.public_scopes.includes('read'),
+    }
+}
+
 /**
  * Process a {@link Bus} for output.
  * @param bus - bus
