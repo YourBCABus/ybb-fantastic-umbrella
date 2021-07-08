@@ -95,10 +95,10 @@ export namespace Models {
       latitude: Number,
       longitude: Number
     },
-    coords: {
+    coords: new Schema({
       type: {type: String, required: true},
       coordinates: {type: [Number], required: true},
-    },
+    }),
     order: Number,
     arrival_time: Date,
     invalidate_time: Date,

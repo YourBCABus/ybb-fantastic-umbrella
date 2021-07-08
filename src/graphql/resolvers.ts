@@ -1,4 +1,4 @@
-import { IResolvers, UserInputError } from 'apollo-server-express';
+import { AuthenticationError, IResolvers, UserInputError } from 'apollo-server-express';
 import { AlertType, Color } from '../interfaces';
 import { Models } from '../models';
 import { convertColorInput, isValidDaysOfWeek, isValidId } from '../utils';
@@ -7,7 +7,7 @@ import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserS
 import { processSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
 import Context from './context';
 import { schoolScopes } from '../auth/scopes';
-import { AlertInput, DismissalTimeDataInput } from './inputinterfaces';
+import { AlertInput, DismissalTimeDataInput, StopInput } from './inputinterfaces';
 
 /**
  * Resolvers for the GraphQL API.
@@ -123,6 +123,30 @@ const resolvers: IResolvers<any, Context> = {
 
             await bus.save();
             return processBus(bus);
+        },
+
+        async createStop(_, { busID, stop: { name, description, location, order, arrivalTime, invalidateTime, available } }: {
+            busID: string,
+            stop: StopInput
+        }, context) {
+            if (!isValidId(busID)) throw new UserInputError("bad_bus_id");
+            const bus = await Models.Bus.findById(busID);
+            if (!bus) throw new AuthenticationError("Forbidden");
+            await authenticateSchoolScope(context, ["stop.create"], bus.school_id);
+
+            const stop = new Models.Stop({
+                bus_id: busID,
+                name,
+                description,
+                coords: location && {type: "Point", coordinates: [location.lat, location.long]},
+                order,
+                arrival_time: arrivalTime,
+                invalidate_time: invalidateTime,
+                available
+            });
+            
+            await stop.save();
+            return processStop(stop);
         },
 
         async createAlert(_, { schoolID, alert: { start, end, type, title, content, dismissable } }: {

@@ -31,3 +31,18 @@ export interface DismissalTimeDataInput {
     alertEndTime?: number;
     daysOfWeek: number[];
 }
+
+interface LocationInput {
+    lat: number;
+    long: number;
+}
+
+export interface StopInput {
+    name?: string;
+    description?: string;
+    location?: LocationInput;
+    order?: number;
+    arrivalTime?: Date;
+    invalidateTime?: Date;
+    available: boolean;
+}
