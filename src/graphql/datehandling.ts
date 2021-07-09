@@ -10,16 +10,20 @@ namespace Scalars {
         serialize(value: Date) {
             return value.toISOString();
         },
-        parseValue(date: string | number) {
+        parseValue(date: unknown) {
             if (typeof date === "number") {
                 return new Date(date * 1000);
             }
 
-            const parsed = new Date(date);
-            if (Number.isNaN(parsed.getTime())) {
-                return null;
+            if (typeof date === "string") {
+                const parsed = new Date(date);
+                if (Number.isNaN(parsed.getTime())) {
+                    return null;
+                }
+                return date;
             }
-            return date;
+
+            return null;
         },
         parseLiteral(ast) {
             let parsed: Date | undefined;
@@ -43,8 +47,32 @@ namespace Scalars {
             const second = Math.floor(value) % 60;
 
             return `T${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}:${("0" + second).slice(-2)}`;
+        },
+        parseValue(time: unknown) {
+            if (typeof time !== "string" && typeof time !== "number") return null;
+            return parseTime(time);
+        },
+        parseLiteral(ast) {
+            if (ast.kind === Kind.STRING || ast.kind === Kind.INT) return parseTime(ast.value);
+            return null;
         }
     });
+}
+
+function parseTime(time: string | number): number | null {
+    if (typeof time === "number") {
+        if (time < 0 || time > 24 * 60 * 60) return null;
+        return time;
+    }
+
+    const timeRegex = /^T?([0-9]{2})\:?([0-9]{2})\:?([0-9]{2})?$/;
+    const match = time.match(timeRegex);
+    if (!match) return null;
+
+    const [_, hour, minute, second] = match;
+    const parsed = parseInt(hour) * 60 * 60 + parseInt(minute) * 60 + (second ? parseInt(second) : 0);
+    if (parsed < 0 || parsed > 24 * 60 * 60) return null;
+    return parsed;
 }
 
 export default Scalars;

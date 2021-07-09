@@ -160,6 +160,7 @@ type AlertAppearanceColor {
     r: Int!
     g: Int!
     b: Int!
+    alpha: Int!
 }
 
 input AlertAppearanceColorInput {
@@ -168,6 +169,7 @@ input AlertAppearanceColorInput {
     r: Int!
     g: Int!
     b: Int!
+    alpha: Int!
 }
 
 type ResolvedColor {
@@ -176,6 +178,7 @@ type ResolvedColor {
     r: Int!
     g: Int!
     b: Int!
+    alpha: Int!
 }
 
 type AlertColor {
@@ -203,8 +206,8 @@ type AlertType {
 }
 
 input AlertTypeInput {
-    name: String
-    color: AlertColorInput
+    name: String!
+    color: AlertColorInput!
 }
 
 type Alert {
