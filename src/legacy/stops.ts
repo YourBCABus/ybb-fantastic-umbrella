@@ -6,7 +6,7 @@ export default ({app}: ServerProviderArguments) => {
   app.get("/schools/:school/buses/:bus/stops", async (_, res, next) => {
     try {
       res.json((await Models.Stop.find({bus_id: res.locals.bus._id})).map(stop => {
-        stop.location = {longitude: stop.coords.coordinates[0], latitude: stop.coords.coordinates[1]};
+        stop.location = stop.coords && {longitude: stop.coords.coordinates[0], latitude: stop.coords.coordinates[1]};
         return stop;
       }));
     } catch (e) {
@@ -49,7 +49,7 @@ export default ({app}: ServerProviderArguments) => {
           $nearSphere: nearQuery
         }
       }).limit(3)).map(stop => {
-        stop.location = {longitude: stop.coords.coordinates[0], latitude: stop.coords.coordinates[1]};
+        stop.location = stop.coords && {longitude: stop.coords.coordinates[0], latitude: stop.coords.coordinates[1]};
         return stop;
       }));
     } catch (e) {
