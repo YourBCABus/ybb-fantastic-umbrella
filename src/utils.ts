@@ -89,7 +89,17 @@ export function processSchool(school?: School | null) {
         name: school.name,
         location: processCoordinate(school.location),
         available: school.available,
-        timeZone: school.timezone
+        timeZone: school.timezone,
+        publicScopes: school.public_scopes || []
+    }
+}
+
+export function processRedactedSchool(school?: School | null) {
+    return school && {
+        id: school._id,
+        name: school.name,
+        location: processCoordinate(school.location),
+        readable: school.public_scopes && school.public_scopes.includes('read'),
     }
 }
 

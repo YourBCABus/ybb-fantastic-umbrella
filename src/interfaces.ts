@@ -175,6 +175,7 @@ export interface School {
   location?: Coordinate;
   available: boolean;
   timezone?: string;
+  legacy_api_enabled?: boolean;
 
   /**
    * List of scopes that can be used in this school without authentication.
