@@ -315,7 +315,7 @@ const resolvers: IResolvers<any, Context> = {
             if (!bus) throw new Error("internal_server_error");
             await authenticateSchoolScope(context, ["stop.delete"], bus.school_id);
 
-            await Models.Stop.remove({_id: stopID});
+            await stop.remove();
 
             return stopID;
         },
@@ -389,6 +389,17 @@ const resolvers: IResolvers<any, Context> = {
             return processAlert(alert);
         },
 
+        async deleteAlert(_, { alertID }: { alertID: string }, context) {
+            if (!isValidId(alertID)) throw new UserInputError("bad_alert_id");
+            const alert = await Models.Alert.findById(alertID);
+            if (!alert) throw new AuthenticationError("Forbidden");
+            await authenticateSchoolScope(context, ["alert.delete"], alert.school_id);
+
+            await alert.remove();
+
+            return alertID;
+        },
+
         async addDismissalTimeData(_, { schoolID, data: { startDate, endDate, dismissalTime, alertStartTime, alertEndTime, daysOfWeek } }: {
             schoolID: string,
             data: DismissalTimeDataInput
@@ -430,6 +441,17 @@ const resolvers: IResolvers<any, Context> = {
 
             await data.save();
             return processDismissalData(data);
+        },
+        
+        async deleteDismissalTimeData(_, { dataID }: { dataID: string }, context) {
+            if (!isValidId(dataID)) throw new UserInputError("bad_data_id");
+            const data = await Models.DismissalRange.findById(dataID);
+            if (!data) throw new AuthenticationError("Forbidden");
+            await authenticateSchoolScope(context, ["dismissalTimeData.delete"], data.school_id);
+
+            await data.remove();
+
+            return dataID;
         },
     },
 
