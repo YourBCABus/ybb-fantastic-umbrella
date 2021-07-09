@@ -3,7 +3,7 @@ import { Color } from '../interfaces';
 import { Models } from '../models';
 import { isValidId } from '../utils';
 import Scalars from './datehandling';
-import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope } from '../auth/context';
+import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope, getSchoolScopes } from '../auth/context';
 import { processSchool, processRedactedSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
 import Context from './context';
 import { schoolScopes } from '../auth/scopes';
@@ -68,6 +68,12 @@ const resolvers: IResolvers<any, Context> = {
                 await authenticateSchoolScope(context, ["read"], dismissalData.school_id)
             }
             return processDismissalData(dismissalData);
+        },
+
+        async currentSchoolScopes(_, {schoolID}: {schoolID: string}, context) {
+            const scopes = await getSchoolScopes(context, schoolID);
+            const userScopes = [...scopes.user].filter(scope => context.scopes.has(scope));
+            return [...(new Set([...scopes.public, ...userScopes]).values())];
         },
 
         async test(_a, _b, context) {
