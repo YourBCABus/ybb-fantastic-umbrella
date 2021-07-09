@@ -7,7 +7,7 @@ import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserS
 import { processSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
 import Context from './context';
 import { schoolScopes } from '../auth/scopes';
-import { AlertInput, DismissalTimeDataInput, StopInput, BusStatusInput } from './inputinterfaces';
+import { AlertInput, DismissalTimeDataInput, StopInput, SchoolInput, BusInput, BusStatusInput } from './inputinterfaces';
 
 /**
  * Resolvers for the GraphQL API.
@@ -73,13 +73,7 @@ const resolvers: IResolvers<any, Context> = {
 
     Mutation: {
         async createSchool(_, { school: { name, location, available, timeZone, publicScopes }}: {
-            school: {
-                name?: string,
-                location?: { lat: number, long: number },
-                available: boolean,
-                timeZone?: string,
-                publicScopes: string[]
-            }
+            school: SchoolInput
         }, context) {
             await authenticateRestrictedScope(context, ["admin.school.create"]);
 
@@ -101,13 +95,7 @@ const resolvers: IResolvers<any, Context> = {
 
         async updateSchool(_, { schoolID, school: { name, location, available, timeZone, publicScopes }}: {
             schoolID: string,
-            school: {
-                name?: string,
-                location?: { lat: number, long: number },
-                available: boolean,
-                timeZone?: string,
-                publicScopes: string[]
-            }
+            school: SchoolInput
         }, context) {
             if (!isValidId(schoolID)) throw new UserInputError("bad_school_id");
             await authenticateSchoolScope(context, ["school.manage"], schoolID);
@@ -119,28 +107,20 @@ const resolvers: IResolvers<any, Context> = {
                 _id: schoolID,
             });
 
-            if (school) {
-                school.name = name;
-                school.location = location && {latitude: location.lat, longitude: location.long};
-                school.available = available;
-                school.timezone = timeZone;
-                school.public_scopes = publicScopes;
+            school!.name = name;
+            school!.location = location && {latitude: location.lat, longitude: location.long};
+            school!.available = available;
+            school!.timezone = timeZone;
+            school!.public_scopes = [...scopes.values()];
 
-                await school.save();
+            await school!.save();
 
-                return processSchool(school);
-            } else throw Error("Unreachable in updateSchool.");
+            return processSchool(school);
         },
 
         async createBus(_, { schoolID, bus: { otherNames, available, name, company, phone } }: {
             schoolID: string,
-            bus: {
-                otherNames: string[],
-                available: boolean,
-                name?: string,
-                company?: string,
-                phone: string[]
-            }
+            bus: BusInput
         }, context) {
             if (!isValidId(schoolID)) throw new UserInputError("bad_school_id");
             await authenticateSchoolScope(context, ["bus.create"], schoolID);
@@ -160,13 +140,7 @@ const resolvers: IResolvers<any, Context> = {
       
         async updateBus(_, { busID, bus: { otherNames, available, name, company, phone } }: {
             busID: string,
-            bus: {
-                otherNames: string[],
-                available: boolean,
-                name?: string,
-                company?: string,
-                phone: string[]
-            }
+            bus: BusInput
         }, context) {
             if (!isValidId(busID)) throw new UserInputError("bad_bus_id");
             
@@ -174,7 +148,7 @@ const resolvers: IResolvers<any, Context> = {
                 _id: busID,
             });
             
-            if (!bus) throw new UserInputError("nonexistent_bus_id");
+            if (!bus) throw new AuthenticationError("Forbidden");
 
             await authenticateSchoolScope(context, ["bus.update"], bus.school_id);
 

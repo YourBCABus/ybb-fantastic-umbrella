@@ -37,6 +37,22 @@ interface LocationInput {
     long: number;
 }
 
+export interface SchoolInput {
+    name?: string,
+    location?: { lat: number, long: number },
+    available: boolean,
+    timeZone?: string,
+    publicScopes: string[]
+}
+
+export interface BusInput {
+    otherNames: string[];
+    available: boolean;
+    name?: string;
+    company?: string;
+    phone: string[];
+}
+
 export interface StopInput {
     name?: string;
     description?: string;
