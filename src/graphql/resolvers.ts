@@ -268,8 +268,8 @@ const resolvers: IResolvers<any, Context> = {
 
             await authenticateSchoolScope(context, ["bus.delete"], bus.school_id);
 
-            (await Models.Stop.find({bus_id: busID})).forEach(stop => stop.remove());
-            bus.remove();
+            await Models.Stop.remove({bus_id: busID});
+            await bus.remove();
 
             return busID;
         },
