@@ -10,7 +10,15 @@ export default ({app}: ServerProviderArguments) => {
       }
 
       res.locals.school = await Models.School.findById(req.params.school);
-      return res.locals.school ? next() : res.status(404).json({error: "school_not_found"});
+      if (res.locals.school) {
+        if (res.locals.school.legacy_api_enabled) {
+          next();
+        } else {
+          res.status(400).json({error: "legacy_api_disabled"});
+        }
+      } else {
+        res.status(404).json({error: "school_not_found"})
+      };
     } catch (e) {
       next(e);
     }

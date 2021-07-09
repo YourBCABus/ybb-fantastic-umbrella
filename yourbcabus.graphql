@@ -7,12 +7,15 @@ directive @cost(
 
 type Query {
     school(id: ID!): School @cost(complexity: 2)
+    schools: [RedactedSchool!]! @cost(complexity: 2)
     bus(id: ID!): Bus @cost(complexity: 2)
     stop(id: ID!): Stop @cost(complexity: 2)
     alert(id: ID!): Alert @cost(complexity: 2)
     dismissalTimeData(id: ID!): DismissalTimeData @cost(complexity: 2)
 
-    test: String!
+    currentSchoolScopes(schoolID: ID!): [String!]!
+
+    test: String! @cost(complexity: 1)
 }
 
 type Mutation {
@@ -62,6 +65,17 @@ type School {
     allDismissalTimeData: [DismissalTimeData!]! @cost(complexity: 4)
     
     timeZone: String
+
+    publicScopes: [String!]!
+    userPermissions: [UserPermission!]! @cost(complexity: 2)
+    clientPermissions: [ClientPermission!]! @cost(complexity: 2)
+}
+
+type RedactedSchool {
+    id: ID!
+    name: String
+    location: Location
+    readable: Boolean!
 }
 
 input SchoolInput {
@@ -70,6 +84,16 @@ input SchoolInput {
     available: Boolean!
     timeZone: String
     publicScopes: [String!]!
+}
+
+type UserPermission {
+    userID: String!
+    scopes: [String!]!
+}
+
+type ClientPermission {
+    clientID: String!
+    scopes: [String!]!
 }
 
 type LocationHistoryEntry {
