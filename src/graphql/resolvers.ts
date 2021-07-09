@@ -98,6 +98,39 @@ const resolvers: IResolvers<any, Context> = {
             return processSchool(school);
         },
 
+        async updateSchool(_, { schoolID, school: { name, location, available, timeZone, publicScopes }}: {
+            schoolID: string,
+            school: {
+                name?: string,
+                location?: { lat: number, long: number },
+                available: boolean,
+                timeZone?: string,
+                publicScopes: string[]
+            }
+        }, context) {
+            if (!isValidId(schoolID)) throw new UserInputError("bad_school_id");
+            await authenticateSchoolScope(context, ["school.manage"], schoolID);
+
+            if (publicScopes.find(scope => !schoolScopes.has(scope)) !== undefined) throw new UserInputError("Invalid scopes");
+            const scopes = new Set(publicScopes);
+
+            let school = await Models.School.findOne({
+                _id: schoolID,
+            });
+
+            if (school) {
+                school.name = name;
+                school.location = location && {latitude: location.lat, longitude: location.long};
+                school.available = available;
+                school.timezone = timeZone;
+                school.public_scopes = publicScopes;
+
+                await school.save();
+
+                return processSchool(school);
+            } else throw Error("Unreachable in updateSchool.");
+        },
+
         async createBus(_, { schoolID, bus: { otherNames, available, name, company, phone } }: {
             schoolID: string,
             bus: {
@@ -122,7 +155,38 @@ const resolvers: IResolvers<any, Context> = {
 
             await bus.save();
             return processBus(bus);
-        }
+        },
+
+        async updateBus(_, { busID, bus: { otherNames, available, name, company, phone } }: {
+            busID: string,
+            bus: {
+                otherNames: string[],
+                available: boolean,
+                name?: string,
+                company?: string,
+                phone: string[]
+            }
+        }, context) {
+            if (!isValidId(busID)) throw new UserInputError("bad_bus_id");
+            
+            let bus = await Models.Bus.findOne({
+                _id: busID,
+            });
+            
+            if (!bus) throw new UserInputError("nonexistent_bus_id");
+
+            await authenticateSchoolScope(context, ["bus.update"], bus.school_id);
+
+            bus.name = name;
+            bus.other_names = [...new Set(otherNames)];
+            bus.available = available;
+            bus.company = company;
+            bus.phone = phone;
+
+            await bus.save();
+
+            return processBus(bus);
+        },
     },
 
     School: {
