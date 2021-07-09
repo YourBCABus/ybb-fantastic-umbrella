@@ -232,6 +232,6 @@ export function convertColorInput(input: AlertColorInput): Color {
 export function isValidDaysOfWeek(days: number[]): boolean {
     const set = new Set(days);
     if (days.length !== set.size) return false;
-    if (days.find(day => day !== 0 && day !== 1 && day !== 2 && day !== 3 && day !== 4 && day !== 5 && day !== 6)) return false;
+    if (days.find(day => ![0, 1, 2, 3, 4, 5, 6].includes(day))) return false;
     return true;
 }
