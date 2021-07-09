@@ -48,6 +48,8 @@ type School {
     allDismissalTimeData: [DismissalTimeData!]! @cost(complexity: 4)
     
     timeZone: String
+
+    publicScopes: [String!]!
 }
 
 type RedactedSchool {
