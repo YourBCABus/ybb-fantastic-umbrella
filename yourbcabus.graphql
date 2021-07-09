@@ -20,7 +20,26 @@ type Query {
 
 type Mutation {
     createSchool(school: SchoolInput!): School!
+    updateSchool(schoolID: ID!, school: SchoolInput!): School!
+    setUserPermissions(schoolID: ID!, userID: ID!, scopes: [String!]!): Boolean!
+    setClientPermissions(schoolID: ID!, clientID: ID!, scopes: [String!]!): Boolean!
+
     createBus(schoolID: ID!, bus: BusInput!): Bus!
+    updateBus(busID: ID!, bus: BusInput!): Bus!
+    updateBusStatus(busID: ID!, status: BusStatusInput!): Bus!
+    deleteBus(busID: ID!): ID!
+
+    createStop(busID: ID!, stop: StopInput!): Stop!
+    updateStop(stopID: ID!, stop: StopInput!): Stop!
+    deleteStop(stopID: ID!): ID!
+
+    createAlert(schoolID: ID!, alert: AlertInput!): Alert!
+    updateAlert(alertID: ID!, alert: AlertInput!): Alert!
+    deleteAlert(alertID: ID!): ID!
+
+    addDismissalTimeData(schoolID: ID!, data: DismissalTimeDataInput!): DismissalTimeData!
+    updateDismissalTimeData(dataID: ID!, data: DismissalTimeDataInput!): DismissalTimeData!
+    deleteDismissalTimeData(dataID: ID!): ID!
 }
 
 scalar DateTime
@@ -112,6 +131,11 @@ input BusInput {
     phone: [String!]!
 }
 
+input BusStatusInput {
+    invalidateTime: DateTime
+    locations: [String!]!
+}
+
 type Stop {
     id: ID!
     busID: ID!
@@ -119,6 +143,16 @@ type Stop {
     name: String
     description: String
     location: Location
+    order: Float
+    arrivalTime: DateTime
+    invalidateTime: DateTime
+    available: Boolean!
+}
+
+input StopInput {
+    name: String
+    description: String
+    location: LocationInput
     order: Float
     arrivalTime: DateTime
     invalidateTime: DateTime
@@ -137,12 +171,31 @@ type DismissalTimeData {
     daysOfWeek: [Int!]!
 }
 
+input DismissalTimeDataInput {
+    startDate: DateTime!
+    endDate: DateTime!
+    dismissalTime: Time
+    alertStartTime: Time
+    alertEndTime: Time
+    daysOfWeek: [Int!]!
+}
+
 type AlertAppearanceColor {
     appearance: String!
     name: String
     r: Int!
     g: Int!
     b: Int!
+    alpha: Int!
+}
+
+input AlertAppearanceColorInput {
+    appearance: String!
+    name: String
+    r: Int!
+    g: Int!
+    b: Int!
+    alpha: Int!
 }
 
 type ResolvedColor {
@@ -151,6 +204,7 @@ type ResolvedColor {
     r: Int!
     g: Int!
     b: Int!
+    alpha: Int!
 }
 
 type AlertColor {
@@ -163,9 +217,23 @@ type AlertColor {
     color(appearance: String!): ResolvedColor!
 }
 
+input AlertColorInput {
+    name: String
+    r: Int!
+    g: Int!
+    b: Int!
+    alpha: Int!
+    appearances: [AlertAppearanceColorInput!]!
+}
+
 type AlertType {
     name: String
     color: AlertColor
+}
+
+input AlertTypeInput {
+    name: String!
+    color: AlertColorInput!
 }
 
 type Alert {
@@ -175,6 +243,15 @@ type Alert {
     start: DateTime!
     end: DateTime!
     type: AlertType
+    title: String!
+    content: String!
+    dismissable: Boolean!
+}
+
+input AlertInput {
+    start: DateTime!
+    end: DateTime!
+    type: AlertTypeInput
     title: String!
     content: String!
     dismissable: Boolean!

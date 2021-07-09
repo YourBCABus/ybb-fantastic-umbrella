@@ -221,7 +221,7 @@ export interface Stop {
   name?: string;
   description?: string;
   location?: Coordinate;
-  coords: Point;
+  coords?: Point;
   order?: number;
   arrival_time?: Date;
   invalidate_time?: Date;
@@ -275,7 +275,7 @@ export interface Alert {
   school_id: string;
   start_date: number;
   end_date: number;
-  type: AlertType;
+  type?: AlertType;
   title: string;
   content: string;
   data: any;

@@ -96,10 +96,10 @@ export namespace Models {
       latitude: Number,
       longitude: Number
     },
-    coords: {
+    coords: new Schema({
       type: {type: String, required: true},
       coordinates: {type: [Number], required: true},
-    },
+    }),
     order: Number,
     arrival_time: Date,
     invalidate_time: Date,
@@ -134,7 +134,7 @@ export namespace Models {
     school_id: {type: String, required: true, index: true},
     start_date: {type: Number, required: true, default: 0},
     end_date: {type: Number, required: true},
-    type: {
+    type: new Schema({
       name: {type: String, required: true},
       color: {
         name: String,
@@ -153,7 +153,7 @@ export namespace Models {
           }
         }
       }
-    },
+    }),
     title: {type: String, required: true},
     content: {type: String, required: true},
     data: Schema.Types.Mixed,
