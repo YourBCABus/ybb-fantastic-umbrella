@@ -309,13 +309,15 @@ const resolvers: IResolvers<any, Context> = {
 
         async deleteStop(_, {stopID}: {stopID: string}, context) {
             if (!isValidId(stopID)) throw new UserInputError("bad_stop_id");
-            let stop = await Models.Stop.findById(stopID);
+
+            const stop = await Models.Stop.findById(stopID);
             if (!stop) throw new AuthenticationError("Forbidden");
             const bus = await Models.Bus.findById(stop.bus_id);
             if (!bus) throw new Error("internal_server_error");
+            
             await authenticateSchoolScope(context, ["stop.delete"], bus.school_id);
 
-            await Models.Stop.remove({_id: stopID});
+            stop.remove();
 
             return stopID;
         },
