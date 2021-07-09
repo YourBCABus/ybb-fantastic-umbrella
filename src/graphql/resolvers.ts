@@ -130,6 +130,72 @@ const resolvers: IResolvers<any, Context> = {
             return processSchool(school);
         },
 
+        async setUserPermissions(_, { schoolID, userID, scopes }: {
+            schoolID: string,
+            userID: string,
+            scopes: string[]
+        }, context) {
+            if (!isValidId(schoolID)) throw new UserInputError("bad_school_id");
+            if (!isValidId(userID)) throw new UserInputError("bad_user_id");
+            await authenticateSchoolScope(context, ["school.manage"], schoolID);
+
+            if (scopes.find(scope => !schoolScopes.has(scope)) !== undefined) throw new UserInputError("Invalid scopes");
+            const uniqueScopes = new Set(scopes);
+
+            if (await Models.User.count({_id: userID}) !== 1) throw new UserInputError("user_not_found");
+            let permission = await Models.Permission.findOne({school_id: schoolID, user_id: userID});
+            if (permission) {
+                if (uniqueScopes.size > 0) {
+                    permission.scopes = [...uniqueScopes.values()];
+                    await permission.save();
+                } else {
+                    await permission.remove();
+                }
+            } else if (uniqueScopes.size > 0) {
+                permission = new Models.Permission({
+                    user_id: userID,
+                    school_id: schoolID,
+                    scopes: [...uniqueScopes.values()]
+                });
+                await permission.save();
+            }
+
+            return true;
+        },
+
+        async setClientPermissions(_, { schoolID, clientID, scopes }: {
+            schoolID: string,
+            clientID: string,
+            scopes: string[]
+        }, context) {
+            if (!isValidId(schoolID)) throw new UserInputError("bad_school_id");
+            if (!isValidId(clientID)) throw new UserInputError("bad_client_id");
+            await authenticateSchoolScope(context, ["school.manage"], schoolID);
+
+            if (scopes.find(scope => !schoolScopes.has(scope)) !== undefined) throw new UserInputError("Invalid scopes");
+            const uniqueScopes = new Set(scopes);
+
+            if (await Models.Client.count({ _id: clientID }) !== 1) throw new UserInputError("client_not_found");
+            let permission = await Models.ClientPermission.findOne({ school_id: schoolID, client_id: clientID });
+            if (permission) {
+                if (uniqueScopes.size > 0) {
+                    permission.scopes = [...uniqueScopes.values()];
+                    await permission.save();
+                } else {
+                    await permission.remove();
+                }
+            } else if (uniqueScopes.size > 0) {
+                permission = new Models.ClientPermission({
+                    client_id: clientID,
+                    school_id: schoolID,
+                    scopes: [...uniqueScopes.values()]
+                });
+                await permission.save();
+            }
+
+            return true;
+        },
+
         async createBus(_, { schoolID, bus: { otherNames, available, name, company, phone } }: {
             schoolID: string,
             bus: BusInput

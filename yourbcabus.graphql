@@ -21,6 +21,8 @@ type Query {
 type Mutation {
     createSchool(school: SchoolInput!): School!
     updateSchool(schoolID: ID!, school: SchoolInput!): School!
+    setUserPermissions(schoolID: ID!, userID: ID!, scopes: [String!]!): Boolean!
+    setClientPermissions(schoolID: ID!, clientID: ID!, scopes: [String!]!): Boolean!
 
     createBus(schoolID: ID!, bus: BusInput!): Bus!
     updateBus(busID: ID!, bus: BusInput!): Bus!
