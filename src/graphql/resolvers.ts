@@ -3,7 +3,7 @@ import { Color } from '../interfaces';
 import { Models } from '../models';
 import { isValidId } from '../utils';
 import Scalars from './datehandling';
-import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope } from '../auth/context';
+import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope, getSchoolScopes } from '../auth/context';
 import { processSchool, processRedactedSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
 import Context from './context';
 import { schoolScopes } from '../auth/scopes';
@@ -68,6 +68,12 @@ const resolvers: IResolvers<any, Context> = {
                 await authenticateSchoolScope(context, ["read"], dismissalData.school_id)
             }
             return processDismissalData(dismissalData);
+        },
+
+        async currentSchoolScopes(_, {schoolID}: {schoolID: string}, context) {
+            const scopes = await getSchoolScopes(context, schoolID);
+            const userScopes = [...scopes.user].filter(scope => context.scopes.has(scope));
+            return [...(new Set([...scopes.public, ...userScopes]).values())];
         },
 
         async test(_a, _b, context) {
@@ -152,7 +158,23 @@ const resolvers: IResolvers<any, Context> = {
 
         async allDismissalTimeData({id}: {id: string}) {
             return (await Models.DismissalRange.find({school_id: id})).map(data => processDismissalData(data));
-        }
+        },
+
+        async userPermissions({id}: {id: string}, _, context) {
+            await authenticateSchoolScope(context, ["school.manage"], id);
+            return (await Models.Permission.find({school_id: id})).map(permission => ({
+                userID: permission.user_id,
+                scopes: permission.scopes
+            }));
+        },
+
+        async clientPermissions({id}: {id: string}, _, context) {
+            await authenticateSchoolScope(context, ["school.manage"], id);
+            return (await Models.ClientPermission.find({school_id: id})).map(permission => ({
+                clientID: permission.client_id,
+                scopes: permission.scopes
+            }));
+        },
     },
 
     Bus: {

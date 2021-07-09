@@ -88,7 +88,8 @@ export function processSchool(school?: School | null) {
         name: school.name,
         location: processCoordinate(school.location),
         available: school.available,
-        timeZone: school.timezone
+        timeZone: school.timezone,
+        publicScopes: school.public_scopes || []
     }
 }
 
