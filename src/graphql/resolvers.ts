@@ -158,7 +158,23 @@ const resolvers: IResolvers<any, Context> = {
 
         async allDismissalTimeData({id}: {id: string}) {
             return (await Models.DismissalRange.find({school_id: id})).map(data => processDismissalData(data));
-        }
+        },
+
+        async userPermissions({id}: {id: string}, _, context) {
+            await authenticateSchoolScope(context, ["school.manage"], id);
+            return (await Models.Permission.find({school_id: id})).map(permission => ({
+                userID: permission.user_id,
+                scopes: permission.scopes
+            }));
+        },
+
+        async clientPermissions({id}: {id: string}, _, context) {
+            await authenticateSchoolScope(context, ["school.manage"], id);
+            return (await Models.ClientPermission.find({school_id: id})).map(permission => ({
+                clientID: permission.client_id,
+                scopes: permission.scopes
+            }));
+        },
     },
 
     Bus: {

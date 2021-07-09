@@ -50,6 +50,8 @@ type School {
     timeZone: String
 
     publicScopes: [String!]!
+    userPermissions: [UserPermission!]! @cost(complexity: 2)
+    clientPermissions: [ClientPermission!]! @cost(complexity: 2)
 }
 
 type RedactedSchool {
@@ -65,6 +67,16 @@ input SchoolInput {
     available: Boolean!
     timeZone: String
     publicScopes: [String!]!
+}
+
+type UserPermission {
+    userID: String!
+    scopes: [String!]!
+}
+
+type ClientPermission {
+    clientID: String!
+    scopes: [String!]!
 }
 
 type LocationHistoryEntry {
