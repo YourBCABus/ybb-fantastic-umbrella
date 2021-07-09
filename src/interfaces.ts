@@ -220,7 +220,7 @@ export interface Stop {
   name?: string;
   description?: string;
   location?: Coordinate;
-  coords: Point;
+  coords?: Point;
   order?: number;
   arrival_time?: Date;
   invalidate_time?: Date;

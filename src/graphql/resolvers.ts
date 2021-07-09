@@ -206,6 +206,29 @@ const resolvers: IResolvers<any, Context> = {
             return processStop(stop);
         },
 
+        async updateStop(_, { stopID, stop: { name, description, location, order, arrivalTime, invalidateTime, available } }: {
+            stopID: string,
+            stop: StopInput,
+        }, context) {
+            if (!isValidId(stopID)) throw new UserInputError("bad_stop_id");
+            let stop = await Models.Stop.findById(stopID);
+            if (!stop) throw new AuthenticationError("Forbidden");
+            const bus = await Models.Bus.findById(stop.bus_id);
+            if (!bus) throw new Error("internal_server_error");
+            await authenticateSchoolScope(context, ["stop.update"], bus.school_id);
+
+            stop.name = name;
+            stop.description = description;
+            stop.coords = location && {type: "Point", coordinates: [location.lat, location.long]};
+            stop.order = order;
+            stop.arrival_time = arrivalTime;
+            stop.invalidate_time = invalidateTime;
+            stop.available = available;
+
+            await stop.save();
+            return processStop(stop);
+        },
+
         async createAlert(_, { schoolID, alert: { start, end, type, title, content, dismissable } }: {
             schoolID: string,
             alert: AlertInput
