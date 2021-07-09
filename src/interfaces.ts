@@ -274,7 +274,7 @@ export interface Alert {
   school_id: string;
   start_date: number;
   end_date: number;
-  type: AlertType;
+  type?: AlertType;
   title: string;
   content: string;
   data: any;
