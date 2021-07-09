@@ -1,5 +1,4 @@
 import {Application} from "express";
-import {ServiceAccount} from "firebase-admin";
 import { ObjectId } from "mongoose";
 import { ClientMetadata, JWK } from "oidc-provider";
 import {GoogleConfig} from "./auth/google";
@@ -12,12 +11,6 @@ export interface Config {
    * MongoDB connection url.
    */
   mongo: string;
-
-  /**
-   * Configuration for bus arrival notifications.
-   * @deprecated
-   */
-  notification: {text: string, title: string};
 
   /**
    * Port to listen to.
@@ -73,12 +66,6 @@ export interface ServerProviderArguments {
    * Configuration for the server.
    */
   config: Config;
-
-  /**
-   * Firebase service account, used for sending notifications with Firebase Cloud Messaging.
-   * @deprecated
-   */
-  serviceAccount?: ServiceAccount;
 }
 
 /** @deprecated */

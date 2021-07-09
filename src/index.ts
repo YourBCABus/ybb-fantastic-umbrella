@@ -5,7 +5,6 @@ import cors from 'cors';
 import express from 'express';
 import { json } from 'body-parser';
 import mongoose from 'mongoose';
-import * as admin from 'firebase-admin';
 import { ApolloServer, gql, PubSub } from 'apollo-server-express';
 import costAnalysis from 'graphql-cost-analysis';
 import exphbs from 'express-handlebars';
@@ -25,30 +24,14 @@ import Context from './graphql/context';
 import { setupPubsub } from './graphql/pubsub';
 import errorPage from './errorpage';
 
-// Read the config and Firebase service account.
+// Read the config.
 const config: Config = JSON.parse(fs.readFileSync(path.join(__dirname, "../config.json"), "utf8"));
-let serviceAccount: admin.ServiceAccount | undefined;
-
-try {
-  serviceAccount = JSON.parse(fs.readFileSync(path.join(__dirname, "../service-account.json"), "utf8"));
-} catch (e) {
-  console.log("Failed to read service-account.json:");
-  console.log(e.message);
-  console.log("Push notifications will not be sent.")
-}
 
 // Read the typedefs in yourbcabus.graphql.
 const typeDefs = gql(fs.readFileSync(path.join(__dirname, "../yourbcabus.graphql"), "utf8"));
 
 // Connect to the database.
 mongoose.connect(config.mongo, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
-
-// Initialize Firebase.
-if (serviceAccount) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-}
 
 // Set up the Pub/Sub event bus.
 const pubsub = new PubSub(); // TODO: Make this more scalable
@@ -90,7 +73,7 @@ app.use(json()); // Body parsing stuff
   stopEndpoints,
   dismissalEndpoints,
   alertEndpoints
-].forEach(fn => fn({app, config, serviceAccount}));
+].forEach(fn => fn({app, config}));
 
 // Set up authentication.
 const provider = makeProvider(config, errorPage(app));

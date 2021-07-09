@@ -1,8 +1,6 @@
 import {Bus, ServerProviderArguments} from "../interfaces";
 import {Models} from "../models";
 import {authenticate, isValidId} from "../utils";
-import * as admin from "firebase-admin";
-
 export interface BusLocationUpdateRequest {
   locations: string[];
   associate_time?: boolean;
@@ -10,18 +8,7 @@ export interface BusLocationUpdateRequest {
   source: string;
 }
 
-export const processNotificationText = (text: string, bus: Bus) => {
-  let location = (bus.locations && bus.locations.length > 0) ? bus.locations[0] : "?";
-  let result = text.replace(/\${name}/gi, bus.name || "").replace(/\${location}/gi, location);
-  if (typeof bus.departure !== "undefined") {
-      let hour = Math.floor(bus.departure / 60) % 12;
-      let minute = bus.departure % 60;
-      result += ` It will depart at ${hour === 0 ? 12 : hour}:${minute < 10 ? ("0" + minute.toString()) : minute} ${bus.departure >= 12 * 60 ? "PM" : "AM"}.`;
-  }
-  return result;
-};
-
-export default ({app, config, serviceAccount}: ServerProviderArguments) => {
+export default ({app, config}: ServerProviderArguments) => {
   app.get("/schools/:school/buses", async (_, res, next) => {
     try {
       res.json(await Models.Bus.find({school_id: res.locals.school._id}));
@@ -152,34 +139,6 @@ export default ({app, config, serviceAccount}: ServerProviderArguments) => {
       await res.locals.bus.save();
 
       res.json({ok: true});
-
-      if (serviceAccount && body.locations.length > 0) {
-        console.log(`Sending message over FCM for ${res.locals.bus.name}.`);
-
-        let message = {
-          topic: `school.${res.locals.school._id}.bus.${res.locals.bus._id}`,
-          notification: {
-            title: processNotificationText(config.notification.title, res.locals.bus),
-            body: processNotificationText(config.notification.text, res.locals.bus)
-          },
-          data: {
-            bus: res.locals.bus._id.toString(),
-            location: body.locations[0],
-            invalidate_time: invalidate_time.toJSON(),
-            source: body.source,
-            time: new Date().toJSON()
-          },
-          apns: {
-            payload: {
-              aps: {
-                sound: "default"
-              }
-            }
-          }
-        };
-
-        admin.messaging().send(message as any).then(_ => console.log(`Successfully sent for ${res.locals.bus.name}.`));
-      }
     } catch (e) {
       next(e);
     }
