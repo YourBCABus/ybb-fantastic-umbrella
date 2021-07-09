@@ -46,3 +46,8 @@ export interface StopInput {
     invalidateTime?: Date;
     available: boolean;
 }
+
+export interface BusStatusInput {
+    invalidateTime?: Date;
+    locations: string[]
+}

@@ -7,7 +7,7 @@ import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserS
 import { processSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
 import Context from './context';
 import { schoolScopes } from '../auth/scopes';
-import { AlertInput, DismissalTimeDataInput, StopInput } from './inputinterfaces';
+import { AlertInput, DismissalTimeDataInput, StopInput, BusStatusInput } from './inputinterfaces';
 
 /**
  * Resolvers for the GraphQL API.
@@ -183,6 +183,25 @@ const resolvers: IResolvers<any, Context> = {
             bus.available = available;
             bus.company = company;
             bus.phone = phone;
+
+            await bus.save();
+
+            return processBus(bus);
+        },
+
+        async updateBusStatus(_, {busID, status: {invalidateTime, locations}}: {
+            busID: string,
+            status: BusStatusInput,
+        }, context) {
+            if (!isValidId(busID)) throw new UserInputError("bad_bus_id");
+            
+            let bus = await Models.Bus.findById(busID);
+            if (!bus) throw new AuthenticationError("Forbidden");
+            
+            await authenticateSchoolScope(context, ["bus.updateStatus"], bus.school_id);
+
+            bus.invalidate_time = invalidateTime;
+            bus.locations = locations;
 
             await bus.save();
 
