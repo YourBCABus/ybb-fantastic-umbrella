@@ -259,6 +259,20 @@ const resolvers: IResolvers<any, Context> = {
 
             return processBus(bus);
         },
+        
+        async deleteBus(_, {busID}: {busID: string}, context) {
+            if (!isValidId(busID)) throw new UserInputError("bad_bus_id");
+
+            const bus = await Models.Bus.findById(busID);
+            if (!bus) throw new AuthenticationError("Forbidden");
+
+            await authenticateSchoolScope(context, ["bus.delete"], bus.school_id);
+
+            (await Models.Stop.find({bus_id: busID})).forEach(stop => stop.remove());
+            bus.remove();
+
+            return busID;
+        },
 
         async createStop(_, { busID, stop: { name, description, location, order, arrivalTime, invalidateTime, available } }: {
             busID: string,
