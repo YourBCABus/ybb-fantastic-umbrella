@@ -3,13 +3,15 @@ import { Color } from '../interfaces';
 import { Models } from '../models';
 import { isValidId } from '../utils';
 import Scalars from './datehandling';
-import { authenticateSchoolScope, authenticateUserScope } from '../auth/context';
-import { processSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
+import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope, getSchoolScopes } from '../auth/context';
+import { processSchool, processRedactedSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
+import Context from './context';
+import { schoolScopes } from '../auth/scopes';
 
 /**
  * Resolvers for the GraphQL API.
  */
-const resolvers: IResolvers<any, any> = {
+const resolvers: IResolvers<any, Context> = {
     DateTime: Scalars.DateTime,
 
     Time: Scalars.Time,
@@ -19,6 +21,12 @@ const resolvers: IResolvers<any, any> = {
             if (!isValidId(id)) throw new UserInputError("bad_school_id");
             await authenticateSchoolScope(context, ["read"], id);
             return processSchool(await Models.School.findById(id));
+        },
+
+        async schools() {
+            let schools = await Models.School.find({});
+            let redactedSchools = schools.map(processRedactedSchool);
+            return redactedSchools;
         },
 
         async bus(_, {id}: {id: string}, context) {
@@ -62,15 +70,70 @@ const resolvers: IResolvers<any, any> = {
             return processDismissalData(dismissalData);
         },
 
-        async bca(_a, _b, context) {
-            const id = "5bca51e785aa2627e14db459";
-            await authenticateSchoolScope(context, ["read"], id);
-            return processSchool(await Models.School.findById(id));
+        async currentSchoolScopes(_, {schoolID}: {schoolID: string}, context) {
+            const scopes = await getSchoolScopes(context, schoolID);
+            const userScopes = [...scopes.user].filter(scope => context.scopes.has(scope));
+            return [...(new Set([...scopes.public, ...userScopes]).values())];
         },
 
         async test(_a, _b, context) {
-            authenticateUserScope(context, ["test"]);
+            await authenticateUserScope(context, ["test"]);
             return "test";
+        }
+    },
+
+    Mutation: {
+        async createSchool(_, { school: { name, location, available, timeZone, publicScopes }}: {
+            school: {
+                name?: string,
+                location?: { lat: number, long: number },
+                available: boolean,
+                timeZone?: string,
+                publicScopes: string[]
+            }
+        }, context) {
+            await authenticateRestrictedScope(context, ["admin.school.create"]);
+
+            const school = new Models.School({
+                name,
+                location: location && {latitude: location.lat, longitude: location.long},
+                available,
+                timezone: timeZone,
+                public_scopes: []
+            });
+
+            if (publicScopes.find(scope => !schoolScopes.has(scope)) !== undefined) throw new UserInputError("Invalid scopes");
+            const scopes = new Set(publicScopes);
+            school.public_scopes = [...scopes.values()];
+
+            await school.save();
+            return processSchool(school);
+        },
+
+        async createBus(_, { schoolID, bus: { otherNames, available, name, company, phone } }: {
+            schoolID: string,
+            bus: {
+                otherNames: string[],
+                available: boolean,
+                name?: string,
+                company?: string,
+                phone: string[]
+            }
+        }, context) {
+            if (!isValidId(schoolID)) throw new UserInputError("bad_school_id");
+            await authenticateSchoolScope(context, ["bus.create"], schoolID);
+
+            const bus = new Models.Bus({
+                school_id: schoolID,
+                other_names: otherNames,
+                available,
+                name,
+                company,
+                phone
+            });
+
+            await bus.save();
+            return processBus(bus);
         }
     },
 
@@ -95,7 +158,23 @@ const resolvers: IResolvers<any, any> = {
 
         async allDismissalTimeData({id}: {id: string}) {
             return (await Models.DismissalRange.find({school_id: id})).map(data => processDismissalData(data));
-        }
+        },
+
+        async userPermissions({id}: {id: string}, _, context) {
+            await authenticateSchoolScope(context, ["school.manage"], id);
+            return (await Models.Permission.find({school_id: id})).map(permission => ({
+                userID: permission.user_id,
+                scopes: permission.scopes
+            }));
+        },
+
+        async clientPermissions({id}: {id: string}, _, context) {
+            await authenticateSchoolScope(context, ["school.manage"], id);
+            return (await Models.ClientPermission.find({school_id: id})).map(permission => ({
+                clientID: permission.client_id,
+                scopes: permission.scopes
+            }));
+        },
     },
 
     Bus: {
@@ -138,12 +217,12 @@ const resolvers: IResolvers<any, any> = {
         appearances(color: Color) {
             return color.appearances ? Object.keys(color.appearances).map(appearanceName => ({
                 appearance: appearanceName,
-                ...color.appearances[appearanceName]
+                ...color.appearances![appearanceName]
             })) : [];
         },
         
         color(color: Color, {appearance}: {appearance: string}) {
-            const resolved = color.appearances[appearance];
+            const resolved = color.appearances && color.appearances[appearance];
             if (resolved) {
                 return {appearance, ...resolved};
             } else {

@@ -1,6 +1,6 @@
 import { model, Schema, Document } from 'mongoose';
 
-import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, DismissalRange, Alert, User, Permission} from './interfaces';
+import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, DismissalRange, Alert, User, Permission, Client, ClientPermission} from './interfaces';
 
 /**
  * Mongoose models used by YourBCABus.
@@ -8,13 +8,26 @@ import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, Dismis
 export namespace Models {
   export const User = model<User & Document>("User", new Schema({
     google_id: {type: String, unique: true},
-    email: String
+    email: String,
+    restricted_scopes: [String]
+  }));
+
+  export const Client = model<Client & Document>("Client", new Schema({
+    secret: {type: String, required: true},
+    redirect_uris: {type: [String], required: true, default: []},
+    restricted_scopes: [String]
   }));
 
   export const Permission = model<Permission & Document>("Permission", new Schema({
     user_id: {type: String, required: true},
     school_id: {type: String, required: true},
     scopes: {type: [String], required: true}
+  }));
+
+  export const ClientPermission = model<ClientPermission & Document>("ClientPermission", new Schema({
+    client_id: { type: String, required: true },
+    school_id: { type: String, required: true },
+    scopes: { type: [String], required: true }
   }));
 
   /** @deprecated */
@@ -49,7 +62,8 @@ export namespace Models {
     },
     available: {type: Boolean, required: true, default: true},
     timezone: String,
-    public_scopes: [String]
+    public_scopes: [String],
+    legacy_api_enabled: Boolean
   }));
 
   export const Bus = model<Bus & Document>("Bus", new Schema({
@@ -71,7 +85,7 @@ export namespace Models {
     bus_id: {type: String, required: true},
     locations: {type: [String], required: true},
     time: Date,
-    source: {type: String, required: true}
+    source: String
   }));
 
   const stopSchema = new Schema({

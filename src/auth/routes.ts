@@ -31,7 +31,7 @@ async function generateState(secret: string, redirectURI?: string): Promise<stri
             if (err) {
                 rej(err);
             } else {
-                res(token);
+                res(token!);
             }
         });
     });
@@ -55,7 +55,7 @@ async function verifyState(state: string, secret: string): Promise<{isValid: boo
                 if (err) {
                     rej(err);
                 } else {
-                    res(data);
+                    res(data!);
                 }
             });
         });
@@ -80,7 +80,7 @@ export default function makeAuthRoutes(config: Config, provider: Provider) {
 
     router.get("/ui", async (req, res, next) => {
         try {
-            let details: Parameters<Parameters<ReturnType<typeof provider.interactionDetails>["then"]>[0]>[0];
+            let details: Parameters<NonNullable<Parameters<ReturnType<typeof provider.interactionDetails>["then"]>[0]>>[0];
             try {
                 details = await provider.interactionDetails(req, res);
             } catch (e) {
@@ -94,7 +94,7 @@ export default function makeAuthRoutes(config: Config, provider: Provider) {
                 let grantId = details.grantId;
 
                 if (grantId) {
-                    grant = await provider.Grant.find(details.grantId);
+                    grant = (await provider.Grant.find(grantId))!;
                 } else {
                     grant = new provider.Grant();
                     grant.accountId = details.session!.accountId;
@@ -110,7 +110,7 @@ export default function makeAuthRoutes(config: Config, provider: Provider) {
                 }
 
                 if (details.prompt.details.missingResourceScopes) {
-                    for (const [indicator, scopes] of Object.entries(details.prompt.details.missingResourceScopes)) {
+                    for (const [indicator, scopes] of Object.entries(details.prompt.details.missingResourceScopes as Record<string, string[]>)) {
                         grant.addResourceScope(indicator, scopes.join(" "));
                     }
                 }
@@ -172,11 +172,11 @@ export default function makeAuthRoutes(config: Config, provider: Provider) {
                     idToken: tokens.id_token
                 });
 
-                let user = await Models.User.findOne({google_id: ticket.getUserId()});
+                let user = await Models.User.findOne({google_id: ticket.getUserId()!});
                 if (!user) {
                     user = new Models.User({
                         google_id: ticket.getUserId(),
-                        email: ticket.getPayload().email
+                        email: ticket.getPayload()!.email
                     });
                     await user.save();
                 }
@@ -191,8 +191,6 @@ export default function makeAuthRoutes(config: Config, provider: Provider) {
         } catch (e) {
             next(e);
         }
-
-        // test.duty.yourbcabus.com:3000/authorize?client_id=uwu&response_type=code&redirect_uri=http:%2F%2Flocalhost:6502%2F&scope=openid%20test%20offline_access&prompt=consent
     });
 
     return router;

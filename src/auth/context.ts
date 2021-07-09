@@ -1,9 +1,9 @@
 import { Provider } from 'oidc-provider';
 import { Request } from 'express';
-import { User } from '../interfaces';
+import { User, Client } from '../interfaces';
 import { Models } from '../models';
 import { AuthenticationError } from 'apollo-server-express';
-import { schoolScopes, userScopes } from './scopes';
+import { restrictedScopes, schoolScopes, userScopes } from './scopes';
 
 /**
  * Auth context passed to GraphQL resolvers.
@@ -13,6 +13,11 @@ export interface AuthContext {
      * Current user.
      */
     user?: User;
+
+    /**
+     * Current client.
+     */
+    client?: Client;
 
     /**
      * List of user scopes that the client has access to.
@@ -44,12 +49,17 @@ export async function authContext(provider: Provider, req: Request): Promise<Aut
     const token = authorization.slice("Bearer ".length).trimEnd();
     const accessToken = await provider.AccessToken.find(token);
     if (!accessToken) {
-        return {scopes: new Set(), permissionCache: new Map()};
+        const clientCredentials = await provider.ClientCredentials.find(token);
+        if (!clientCredentials) {
+            return {scopes: new Set(), permissionCache: new Map()};
+        }
+        const client = clientCredentials.clientId && await Models.Client.findById(clientCredentials.clientId);
+        return {scopes: clientCredentials.scopes, permissionCache: new Map(), client: client || undefined}
     }
 
     const user = await Models.User.findById(accessToken.accountId);
     if (!user) {
-        return {scopes: new Set(), permissionCache: new Map()};
+        return {scopes: accessToken.scopes, permissionCache: new Map()};
     }
 
     return {user, scopes: accessToken.scopes, permissionCache: new Map()};
@@ -59,7 +69,7 @@ export async function authContext(provider: Provider, req: Request): Promise<Aut
  * Fetches the scopes the current auth context has for a given school.
  * @param context - current auth context
  * @param schoolID - school ID
- * @returns a list of public scopes and a list of scopes for this user in the school
+ * @returns a list of public scopes and a list of scopes for this user/client in the school
  */
 export async function getSchoolScopes(context: AuthContext, schoolID: string): Promise<{public: Set<string>, user: Set<string>}> {
     if (!context.permissionCache.has(schoolID)) {
@@ -72,13 +82,18 @@ export async function getSchoolScopes(context: AuthContext, schoolID: string): P
                 if (permission) {
                     userScopes = new Set(permission.scopes);
                 }
+            } else if (context.client) {
+                const permission = await Models.ClientPermission.findOne({school_id: schoolID, client_id: context.client._id.toString()});
+                if (permission) {
+                    userScopes = new Set(permission.scopes);
+                }
             }
             context.permissionCache.set(schoolID, {public: publicScopes, user: userScopes || new Set()});
         } else {
             context.permissionCache.set(schoolID, {public: new Set(), user: new Set()});
         }
     }
-    return context.permissionCache.get(schoolID);
+    return context.permissionCache.get(schoolID)!;
 }
 
 /**
@@ -106,5 +121,25 @@ export async function authenticateSchoolScope(context: AuthContext, scopes: stri
     if (scopes.find(scope => !publicScopes.has(scope))) {
         if (scopes.find(scope => !publicScopes.has(scope) && !userScopes.has(scope))) throw new AuthenticationError("Forbidden");
         if (scopes.find(scope => !context.scopes.has(scope))) throw new AuthenticationError("Forbidden");
+    }
+}
+
+/**
+ * Authenticates an auth context for a set of restricted scopes.
+ * @see {@link restrictedScopes}
+ * @param context - current auth context
+ * @param scopes - list of {@link restrictedScopes} that the client must have
+ * @throws if the client is unauthorized (or if the scope is invalid)
+ */
+export function authenticateRestrictedScope(context: AuthContext, scopes: string[]): void {
+    if (scopes.find(scope => !restrictedScopes.has(scope))) throw new Error("Invalid restricted scope");
+    if (scopes.find(scope => !context.scopes.has(scope))) throw new AuthenticationError("Forbidden");
+    if (context.user) {
+        if (!context.user.restricted_scopes) throw new AuthenticationError("Forbidden");
+        if (scopes.find(scope => !context.user!.restricted_scopes!.includes(scope))) throw new AuthenticationError("Forbidden");
+    } else {
+        if (!context.client) throw new AuthenticationError("Forbidden");
+        if (!context.client!.restricted_scopes) throw new AuthenticationError("Forbidden");
+        if (scopes.find(scope => !context.client!.restricted_scopes!.includes(scope))) throw new AuthenticationError("Forbidden");
     }
 }

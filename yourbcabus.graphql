@@ -7,20 +7,31 @@ directive @cost(
 
 type Query {
     school(id: ID!): School @cost(complexity: 2)
+    schools: [RedactedSchool!]! @cost(complexity: 2)
     bus(id: ID!): Bus @cost(complexity: 2)
     stop(id: ID!): Stop @cost(complexity: 2)
     alert(id: ID!): Alert @cost(complexity: 2)
     dismissalTimeData(id: ID!): DismissalTimeData @cost(complexity: 2)
 
-    bca: School @deprecated(reason: "Use school(id) instead.") @cost(complexity: 2)
+    currentSchoolScopes(schoolID: ID!): [String!]!
 
-    test: String!
+    test: String! @cost(complexity: 1)
+}
+
+type Mutation {
+    createSchool(school: SchoolInput!): School!
+    createBus(schoolID: ID!, bus: BusInput!): Bus!
 }
 
 scalar DateTime
 scalar Time
 
 type Location {
+    lat: Float!
+    long: Float!
+}
+
+input LocationInput {
     lat: Float!
     long: Float!
 }
@@ -37,6 +48,35 @@ type School {
     allDismissalTimeData: [DismissalTimeData!]! @cost(complexity: 4)
     
     timeZone: String
+
+    publicScopes: [String!]!
+    userPermissions: [UserPermission!]! @cost(complexity: 2)
+    clientPermissions: [ClientPermission!]! @cost(complexity: 2)
+}
+
+type RedactedSchool {
+    id: ID!
+    name: String
+    location: Location
+    readable: Boolean!
+}
+
+input SchoolInput {
+    name: String
+    location: LocationInput
+    available: Boolean!
+    timeZone: String
+    publicScopes: [String!]!
+}
+
+type UserPermission {
+    userID: String!
+    scopes: [String!]!
+}
+
+type ClientPermission {
+    clientID: String!
+    scopes: [String!]!
 }
 
 type LocationHistoryEntry {
@@ -44,7 +84,7 @@ type LocationHistoryEntry {
     bus: Bus! @cost(complexity: 4)
     locations: [String!]!
     time: DateTime
-    source: String!
+    source: String
 }
 
 type Bus {
@@ -62,6 +102,14 @@ type Bus {
 
     recentHistory: [LocationHistoryEntry!]! @cost(complexity: 4)
     stops: [Stop!]! @cost(complexity: 4)
+}
+
+input BusInput {
+    otherNames: [String!]!
+    available: Boolean!
+    name: String
+    company: String
+    phone: [String!]!
 }
 
 type Stop {
