@@ -241,6 +241,40 @@ const resolvers: IResolvers<any, Context> = {
             return processAlert(alert);
         },
 
+        async updateAlert(_, { alertID, alert: { start, end, type, title, content, dismissable } }: {
+            alertID: string,
+            alert: AlertInput
+        }, context) {
+            if (!isValidId(alertID)) throw new UserInputError("bad_alert_id");
+
+            let alertType: AlertType | undefined;
+            if (type) {
+                try {
+                    alertType = { name: type.name, color: convertColorInput(type.color) }
+                } catch (_) {
+                    throw new UserInputError("bad_color");
+                }
+            }
+
+            if (start > end) {
+                throw new UserInputError("bad_dates");
+            }
+
+            const alert = await Models.Alert.findById(alertID);
+            if (!alert) throw new AuthenticationError("Forbidden");
+            await authenticateSchoolScope(context, ["alert.update"], alert.school_id);
+
+            alert.start_date = Math.floor(start.getTime() / 1000);
+            alert.end_date = Math.floor(end.getTime() / 1000);
+            alert.type = alertType;
+            alert.title = title;
+            alert.content = content;
+            alert.can_dismiss = dismissable;
+
+            await alert.save();
+            return processAlert(alert);
+        },
+
         async addDismissalTimeData(_, { schoolID, data: { startDate, endDate, dismissalTime, alertStartTime, alertEndTime, daysOfWeek } }: {
             schoolID: string,
             data: DismissalTimeDataInput
@@ -258,6 +292,28 @@ const resolvers: IResolvers<any, Context> = {
                 dismissal_time: dismissalTime,
                 days_of_week: daysOfWeek
             });
+            await data.save();
+            return processDismissalData(data);
+        },
+
+        async updateDismissalTimeData(_, { dataID, data: { startDate, endDate, dismissalTime, alertStartTime, alertEndTime, daysOfWeek } }: {
+            dataID: string,
+            data: DismissalTimeDataInput
+        }, context) {
+            if (!isValidId(dataID)) throw new UserInputError("bad_data_id");
+            if (startDate > endDate) throw new UserInputError("bad_dates");
+            if (!isValidDaysOfWeek(daysOfWeek)) throw new UserInputError("bad_days_of_week");
+            const data = await Models.DismissalRange.findById(dataID);
+            if (!data) throw new AuthenticationError("Forbidden");
+            await authenticateSchoolScope(context, ["dismissalTimeData.update"], data.school_id);
+            
+            data.start_date = Math.floor(startDate.getTime() / 1000);
+            data.end_date = Math.floor(endDate.getTime() / 1000);
+            data.start_time = alertStartTime;
+            data.end_time = alertEndTime;
+            data.dismissal_time = dismissalTime;
+            data.days_of_week = daysOfWeek;
+
             await data.save();
             return processDismissalData(data);
         },
