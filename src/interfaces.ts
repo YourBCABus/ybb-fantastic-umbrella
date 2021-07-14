@@ -177,7 +177,7 @@ export interface Bus {
   _id: any;
   school_id: string;
   name?: string;
-  locations?: string[];
+  boarding_area?: string;
   boarding?: number;
   departure?: number;
   invalidate_time?: Date;

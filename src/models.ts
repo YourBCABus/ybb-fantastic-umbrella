@@ -69,7 +69,7 @@ export namespace Models {
   export const Bus = model<Bus & Document>("Bus", new Schema({
     school_id: {type: String, required: true, index: true},
     name: String,
-    locations: [String],
+    boarding_area: String,
     other_names: [String],
     boarding: Number,
     departure: Number,
