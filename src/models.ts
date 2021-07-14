@@ -73,13 +73,16 @@ export namespace Models {
         type: {type: String, enum: ["Point"], required: true},
         coordinates: {type: [Number], required: true}
       },
-      boarding_areas: [{
-        name: {type: String, required: true},
-        location: {
-          type: {type: String, enum: ["Point"], required: true},
-          coordinates: {type: [Number], required: true}
-        }
-      }]
+      boarding_areas: {
+        type: [{
+          name: { type: String, required: true },
+          location: {
+            type: { type: String, enum: ["Point"], required: true },
+            coordinates: { type: [Number], required: true }
+          }
+        }],
+        required: true
+      }
     })
   }));
 
