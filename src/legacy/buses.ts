@@ -8,10 +8,27 @@ export interface BusLocationUpdateRequest {
   source: string;
 }
 
+function boardingAreaToLocations(bus: Bus): Bus & {locations: string[]} {
+  return {
+    _id: bus._id,
+    school_id: bus.school_id,
+    name: bus.name,
+    numbers: bus.numbers,
+    phone: bus.phone,
+    available: bus.available,
+    other_names: bus.other_names,
+    boarding_area: bus.boarding_area,
+    locations: bus.boarding_area ? [bus.boarding_area] : [],
+    boarding: bus.boarding,
+    departure: bus.departure,
+    invalidate_time: bus.invalidate_time
+  }
+}
+
 export default ({app, config}: ServerProviderArguments) => {
   app.get("/schools/:school/buses", async (_, res, next) => {
     try {
-      res.json(await Models.Bus.find({school_id: res.locals.school._id}));
+      res.json((await Models.Bus.find({school_id: res.locals.school._id})).map(boardingAreaToLocations));
     } catch (e) {
       next(e);
     }
@@ -32,7 +49,7 @@ export default ({app, config}: ServerProviderArguments) => {
 
   app.get("/schools/:school/buses/:bus", async (_, res, next) => {
     try {
-      res.json(res.locals.bus);
+      res.json(boardingAreaToLocations(res.locals.bus));
     } catch (e) {
       next(e);
     }
