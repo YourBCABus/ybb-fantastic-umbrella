@@ -149,7 +149,7 @@ export interface Coordinate {
  * A GeoJSON point.
  */
 export interface Point {
-  type: string; // should be "point"
+  type: "Point"; // should be "point"
   coordinates: number[];
 }
 
@@ -163,11 +163,21 @@ export interface School {
   available: boolean;
   timezone?: string;
   legacy_api_enabled?: boolean;
+  mapping_data?: MappingData;
 
   /**
    * List of scopes that can be used in this school without authentication.
    */
   public_scopes?: string[];
+}
+
+/**
+ * A school's mapping data.
+ */
+export interface MappingData {
+  bounding_box_a: Point;
+  bounding_box_b: Point;
+  boarding_areas: {name: string, location: Point}[];
 }
 
 /**
