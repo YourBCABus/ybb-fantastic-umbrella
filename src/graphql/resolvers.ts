@@ -7,7 +7,7 @@ import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserS
 import { processSchool, processRedactedSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../utils';
 import Context from './context';
 import { schoolScopes } from '../auth/scopes';
-import { AlertInput, DismissalTimeDataInput, StopInput, SchoolInput, BusInput, BusStatusInput } from './inputinterfaces';
+import { AlertInput, DismissalTimeDataInput, StopInput, SchoolInput, BusInput, BusStatusInput, MappingDataInput } from './inputinterfaces';
 
 /**
  * Resolvers for the GraphQL API.
@@ -128,6 +128,29 @@ const resolvers: IResolvers<any, Context> = {
             await school!.save();
 
             return processSchool(school);
+        },
+
+        async updateSchoolMappingData(_, {schoolID, mappingData: {boundingBoxA, boundingBoxB, boardingAreas}}: {
+            schoolID: string,
+            mappingData: MappingDataInput,
+        }, context) {
+            if (!isValidId(schoolID)) throw new UserInputError("bad_school_id");
+            await authenticateSchoolScope(context, ["school.updateMappingData"], schoolID);
+
+            let school = await Models.School.findOne({
+                _id: schoolID,
+            });
+
+            school!.mapping_data = {
+                bounding_box_a: {type: "Point", coordinates: [boundingBoxA.lat, boundingBoxA.long]},
+                bounding_box_b: {type: "Point", coordinates: [boundingBoxB.lat, boundingBoxB.long]},
+                boarding_areas: boardingAreas.map(
+                    (boardingArea) => {return {
+                        name: boardingArea.name,
+                        location: {type: "Point", coordinates: [boardingArea.location.lat, boardingArea.location.long]},
+                    }}
+                ),
+            };
         },
 
         async setUserPermissions(_, { schoolID, userID, scopes }: {
