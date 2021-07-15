@@ -1,5 +1,3 @@
-import { Point } from "../interfaces";
-
 export interface AlertInput {
     start: Date;
     end: Date;
@@ -48,14 +46,14 @@ export interface SchoolInput {
 }
 
 export interface MappingDataInput {
-    boundingBoxA: Point;
-    boundingBoxB: Point;
-    boardingAreas: [];
+    boundingBoxA: { lat: number, long: number };
+    boundingBoxB: { lat: number, long: number };
+    boardingAreas: BoardingAreaInput[];
 }
 
 export interface BoardingAreaInput {
     name: string;
-    location: Point;
+    location: { lat: number, long: number };
 }
 
 export interface BusInput {
