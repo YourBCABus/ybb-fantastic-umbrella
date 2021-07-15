@@ -241,7 +241,7 @@ const resolvers: IResolvers<any, Context> = {
             return processBus(bus);
         },
 
-        async updateBusStatus(_, {busID, status: {invalidateTime, locations}}: {
+        async updateBusStatus(_, {busID, status: {invalidateTime, boardingArea}}: {
             busID: string,
             status: BusStatusInput,
         }, context) {
@@ -253,7 +253,7 @@ const resolvers: IResolvers<any, Context> = {
             await authenticateSchoolScope(context, ["bus.updateStatus"], bus.school_id);
 
             bus.invalidate_time = invalidateTime;
-            bus.locations = locations;
+            bus.boarding_area = boardingArea;
 
             await bus.save();
 

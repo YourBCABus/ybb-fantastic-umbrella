@@ -172,12 +172,20 @@ export interface School {
 }
 
 /**
+ * A single boarding area in a unit of mapping data
+ */
+export interface BoardingArea {
+  name: string;
+  location: Point;
+}
+
+/**
  * A school's mapping data.
  */
 export interface MappingData {
   bounding_box_a: Point;
   bounding_box_b: Point;
-  boarding_areas: {name: string, location: Point}[];
+  boarding_areas: BoardingArea[];
 }
 
 /**

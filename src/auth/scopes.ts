@@ -31,7 +31,8 @@ export const schoolScopes = new Set([
     "dismissalTimeData.create",
     "dismissalTimeData.update",
     "dismissalTimeData.delete",
-    "school.manage"
+    "school.manage",
+    "school.updateMappingData",
 ]);
 
 /**

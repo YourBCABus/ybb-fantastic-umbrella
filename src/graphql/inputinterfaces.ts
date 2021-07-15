@@ -1,3 +1,5 @@
+import { Point } from "../interfaces";
+
 export interface AlertInput {
     start: Date;
     end: Date;
@@ -45,6 +47,17 @@ export interface SchoolInput {
     publicScopes: string[]
 }
 
+export interface MappingDataInput {
+    boundingBoxA: Point;
+    boundingBoxB: Point;
+    boardingAreas: [];
+}
+
+export interface BoardingAreaInput {
+    name: string;
+    location: Point;
+}
+
 export interface BusInput {
     otherNames: string[];
     available: boolean;
@@ -65,5 +78,5 @@ export interface StopInput {
 
 export interface BusStatusInput {
     invalidateTime?: Date;
-    locations: string[]
+    boardingArea: string
 }
