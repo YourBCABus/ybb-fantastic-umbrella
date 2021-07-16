@@ -151,6 +151,10 @@ const resolvers: IResolvers<any, Context> = {
                     }}
                 ),
             };
+
+            await school!.save();
+
+            return processSchool(school);
         },
 
         async setUserPermissions(_, { schoolID, userID, scopes }: {
