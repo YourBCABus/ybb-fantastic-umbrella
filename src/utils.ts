@@ -116,8 +116,8 @@ export function processRedactedSchool(school?: School | null) {
  */
 export function processMappingData(mappingData?: MappingData | null) {
     return mappingData && {
-        boundingBoxA: mappingData.bounding_box_a,
-        boundingBoxB: mappingData.bounding_box_b,
+        boundingBoxA: processPoint(mappingData.bounding_box_a),
+        boundingBoxB: processPoint(mappingData.bounding_box_b),
         boardingAreas: mappingData.boarding_areas.map(processBoardingArea),
     }
 }
