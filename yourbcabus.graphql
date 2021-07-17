@@ -21,6 +21,7 @@ type Query {
 type Mutation {
     createSchool(school: SchoolInput!): School!
     updateSchool(schoolID: ID!, school: SchoolInput!): School!
+    updateSchoolMappingData(schoolID: ID!, mappingData: MappingDataInput!): School!
     setUserPermissions(schoolID: ID!, userID: ID!, scopes: [String!]!): Boolean!
     setClientPermissions(schoolID: ID!, clientID: ID!, scopes: [String!]!): Boolean!
 
@@ -55,11 +56,34 @@ input LocationInput {
     long: Float!
 }
 
+type BoardingArea {
+    name: String!
+    location: Location!
+}
+
+input BoardingAreaInput {
+    name: String!
+    location: LocationInput!
+}
+
+type MappingData {
+  boundingBoxA: Location!
+  boundingBoxB: Location!
+  boardingAreas: [BoardingArea!]!
+}
+
+input MappingDataInput {
+  boundingBoxA: LocationInput!
+  boundingBoxB: LocationInput!
+  boardingAreas: [BoardingAreaInput!]!
+}
+
 type School {
     id: ID!
     name: String
     location: Location
     available: Boolean!
+    mappingData: MappingData            
 
     buses: [Bus!]! @cost(complexity: 4)
     alerts: [Alert!]! @cost(complexity: 4)
@@ -110,7 +134,7 @@ type Bus {
     id: ID!
     schoolID: ID!
     school: School! @cost(complexity: 4)
-    locations: [String!]!
+    boardingArea: String
     otherNames: [String!]!
     invalidateTime: DateTime
     available: Boolean!
@@ -133,7 +157,7 @@ input BusInput {
 
 input BusStatusInput {
     invalidateTime: DateTime
-    locations: [String!]!
+    boardingArea: String
 }
 
 type Stop {

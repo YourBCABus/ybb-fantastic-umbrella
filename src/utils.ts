@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { School, Bus, Stop, Coordinate, BusLocationHistory, Alert, DismissalRange, Point, Color } from './interfaces';
+import { School, Bus, Stop, Coordinate, MappingData, BusLocationHistory, Alert, DismissalRange, Point, Color, BoardingArea } from './interfaces';
 import crypto from "crypto";
 import { Models } from "./models";
 import { AlertColorInput } from "./graphql/inputinterfaces";
@@ -90,16 +90,47 @@ export function processSchool(school?: School | null) {
         location: processCoordinate(school.location),
         available: school.available,
         timeZone: school.timezone,
+        mappingData: processMappingData(school.mapping_data),
         publicScopes: school.public_scopes || []
     }
 }
 
+/**
+ * Process a {@link School} for limited output due to unchecked read permissions.
+ * @param school - school
+ * @returns limited processed school
+ */
 export function processRedactedSchool(school?: School | null) {
     return school && {
         id: school._id,
         name: school.name,
         location: processCoordinate(school.location),
         readable: school.public_scopes && school.public_scopes.includes('read'),
+    }
+}
+
+/**
+ * Process {@link MappingData} for output.
+ * @param mappingData - The mapping data for a school.
+ * @returns Processed mapping data.
+ */
+export function processMappingData(mappingData?: MappingData | null) {
+    return mappingData && {
+        boundingBoxA: processPoint(mappingData.bounding_box_a),
+        boundingBoxB: processPoint(mappingData.bounding_box_b),
+        boardingAreas: mappingData.boarding_areas.map(processBoardingArea),
+    }
+}
+
+/**
+ * Process a single {@link BoardingArea} in a unit of {@link MappingData} for output.
+ * @param mappingData - A single boarding area.
+ * @returns A processed boarding area.
+ */
+export function processBoardingArea(boardingArea?: BoardingArea | null) {
+    return boardingArea && {
+        name: boardingArea.name,
+        location: processPoint(boardingArea.location),
     }
 }
 
@@ -112,7 +143,7 @@ export function processBus(bus?: Bus | null) {
     return bus && {
         id: bus._id,
         schoolID: bus.school_id,
-        locations: bus.locations,
+        boardingArea: bus.boarding_area,
         otherNames: bus.other_names,
         available: bus.available,
         name: bus.name,

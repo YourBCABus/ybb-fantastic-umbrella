@@ -63,13 +63,33 @@ export namespace Models {
     available: {type: Boolean, required: true, default: true},
     timezone: String,
     public_scopes: [String],
-    legacy_api_enabled: Boolean
+    legacy_api_enabled: Boolean,
+    mapping_data: new Schema({
+      bounding_box_a: {
+        type: {type: String, enum: ["Point"], required: true},
+        coordinates: {type: [Number], required: true}
+      },
+      bounding_box_b: {
+        type: {type: String, enum: ["Point"], required: true},
+        coordinates: {type: [Number], required: true}
+      },
+      boarding_areas: {
+        type: [{
+          name: { type: String, required: true },
+          location: {
+            type: { type: String, enum: ["Point"], required: true },
+            coordinates: { type: [Number], required: true }
+          }
+        }],
+        required: true
+      }
+    })
   }));
 
   export const Bus = model<Bus & Document>("Bus", new Schema({
     school_id: {type: String, required: true, index: true},
     name: String,
-    locations: [String],
+    boarding_area: String,
     other_names: [String],
     boarding: Number,
     departure: Number,

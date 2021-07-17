@@ -45,6 +45,17 @@ export interface SchoolInput {
     publicScopes: string[]
 }
 
+export interface MappingDataInput {
+    boundingBoxA: { lat: number, long: number };
+    boundingBoxB: { lat: number, long: number };
+    boardingAreas: BoardingAreaInput[];
+}
+
+export interface BoardingAreaInput {
+    name: string;
+    location: { lat: number, long: number };
+}
+
 export interface BusInput {
     otherNames: string[];
     available: boolean;
@@ -65,5 +76,5 @@ export interface StopInput {
 
 export interface BusStatusInput {
     invalidateTime?: Date;
-    locations: string[]
+    boardingArea: string
 }
