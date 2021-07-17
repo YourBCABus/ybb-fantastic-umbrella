@@ -6,6 +6,7 @@ import Context from "../context";
 import { Models } from '../../models';
 import { AlertInput, DismissalTimeDataInput, StopInput, SchoolInput, BusInput, BusStatusInput, MappingDataInput } from '../inputinterfaces';
 import { AlertType } from '../../interfaces';
+import { BUS_BOARDING_AREA_CHANGE } from "../pubsub";
 
 const Mutation: IResolverObject<any, Context> = {
     async createSchool(_, { school: { name, location, available, timeZone, publicScopes }}: {
@@ -203,10 +204,23 @@ const Mutation: IResolverObject<any, Context> = {
         
         await authenticateSchoolScope(context, ["bus.updateStatus"], bus.school_id);
 
+        const oldBoardingArea = bus.boarding_area;
+
         bus.invalidate_time = invalidateTime;
         bus.boarding_area = boardingArea;
 
         await bus.save();
+
+        if (context.pubsub) {
+            await context.pubsub.publish(BUS_BOARDING_AREA_CHANGE, {
+                busID,
+                schoolID: bus.school_id,
+                busName: bus.name,
+                oldBoardingArea,
+                newBoardingArea: boardingArea,
+                invalidateTime,
+            });
+        }
 
         return processBus(bus);
     },
