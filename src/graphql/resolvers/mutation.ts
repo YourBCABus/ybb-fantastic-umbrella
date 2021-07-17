@@ -420,5 +420,6 @@ const Mutation: IResolverObject<any, Context> = {
 
         return dataID;
     },
-} 
+};
+
 export default Mutation;
