@@ -1,4 +1,5 @@
 import {Application} from "express";
+import { RedisOptions } from "ioredis";
 import { ObjectId } from "mongoose";
 import { ClientMetadata, JWK } from "oidc-provider";
 import {GoogleConfig} from "./auth/google";
@@ -51,6 +52,11 @@ export interface Config {
    * List of JWKs used for YourBCABus auth tokens.
    */
   authJWKKeys: JWK[];
+
+  /**
+   * Options for Redis, or true to use localhost.
+   */
+  redis?: RedisOptions | true;
 }
 
 /**

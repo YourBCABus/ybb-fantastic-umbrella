@@ -1,4 +1,5 @@
-import { ExpressContext, PubSub } from "apollo-server-express";
+import { ExpressContext } from "apollo-server-express";
+import { RedisPubSub } from "graphql-redis-subscriptions";
 import { AuthContext } from "../auth/context";
 
 /**
@@ -8,7 +9,7 @@ type Context = AuthContext & {
     /**
      * Event bus for tracking bus changes.
      */
-    pubsub: PubSub;
+    pubsub?: RedisPubSub;
 } & ExpressContext;
 
 export default Context;

@@ -5,9 +5,11 @@ import cors from 'cors';
 import express from 'express';
 import { json } from 'body-parser';
 import mongoose from 'mongoose';
-import { ApolloServer, gql, PubSub } from 'apollo-server-express';
+import { ApolloServer, gql } from 'apollo-server-express';
 import costAnalysis from 'graphql-cost-analysis';
 import exphbs from 'express-handlebars';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
+import Redis from 'ioredis';
 
 import {Config} from './interfaces';
 
@@ -33,9 +35,18 @@ const typeDefs = gql(fs.readFileSync(path.join(__dirname, "../yourbcabus.graphql
 // Connect to the database.
 mongoose.connect(config.mongo, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true });
 
-// Set up the Pub/Sub event bus.
-const pubsub = new PubSub(); // TODO: Make this more scalable
-setupPubsub(pubsub);
+// Set up the Redis Pub/Sub event bus.
+let pubsub: RedisPubSub | undefined;
+if (config.redis) {
+  const redis = config.redis === true ? new Redis() : new Redis(config.redis);
+  pubsub = new RedisPubSub({
+    publisher: redis,
+    subscriber: redis
+  });
+  setupPubsub(pubsub!);
+} else {
+  console.log("Redis is not set up. Subscriptions and notifications will not work.")
+}
 
 // Set up the GraphQL server.
 const server = new ApolloServer({
