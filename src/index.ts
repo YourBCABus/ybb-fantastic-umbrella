@@ -49,15 +49,21 @@ if (config.redis) {
 }
 
 // Set up the GraphQL server.
-const server = new ApolloServer({
+// HACK: https://github.com/pa-bru/graphql-cost-analysis/issues/12#issuecomment-420991259
+class CostAnalysisApolloServer extends ApolloServer {
+  async createGraphQLServerOptions(req: express.Request, res: express.Response) {
+    const options = await super.createGraphQLServerOptions(req, res);
+    return {...options, validationRules: [...options.validationRules!, costAnalysis({
+      maximumCost: 20,
+      variables: req.body.variables
+    })]}
+  }
+}
+const server = new CostAnalysisApolloServer({
   typeDefs,
   resolvers,
   introspection: true,
-  validationRules: [
-    costAnalysis({
-      maximumCost: 50 // TODO: Tweak
-    })
-  ],
+  validationRules: [],
   playground: true,
   async context(context): Promise<Context> {
     return {
