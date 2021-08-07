@@ -1,1 +1,8 @@
-Oh no! An error occurred: {{error}} {{error_description}}
+<div class="container h-100 px-3 py-5 d-flex align-items-center justify-content-center">
+    <div class="bg-white text-dark rounded shadow-lg p-4 text-center">
+        <h1 style="color: #004C40;" class="mb-0 display-3 font-weight-bold"><span class="sr-only">Error </span>{{status}}</h1>
+        <p class="lead font-weight-normal w-100">{{flavor}}</p>
+        <p class="mb-0">Error: <code id="error">{{error}}</code></p>
+        <p class="mb-0"><small id="error_description">{{error_description}}</small></p>
+    </div>
+</div>
