@@ -75,7 +75,7 @@ function processCoordinate(coordinate?: Coordinate | {}) {
 function processPoint(point?: Point) {
     if (!point) return;
     if (typeof (point as Partial<Point>).coordinates === "undefined") return;
-    return { lat: point.coordinates[0], long: point.coordinates[1] };
+    return { lat: point.coordinates[1], long: point.coordinates[0] };
 }
 
 /**
