@@ -67,12 +67,12 @@ const Mutation: IResolverObject<any, Context> = {
         });
 
         school!.mapping_data = {
-            bounding_box_a: {type: "Point", coordinates: [boundingBoxA.lat, boundingBoxA.long]},
-            bounding_box_b: {type: "Point", coordinates: [boundingBoxB.lat, boundingBoxB.long]},
+            bounding_box_a: {type: "Point", coordinates: [boundingBoxA.long, boundingBoxA.lat]},
+            bounding_box_b: {type: "Point", coordinates: [boundingBoxB.long, boundingBoxB.lat]},
             boarding_areas: boardingAreas.map(
                 (boardingArea) => {return {
                     name: boardingArea.name,
-                    location: {type: "Point", coordinates: [boardingArea.location.lat, boardingArea.location.long]},
+                    location: {type: "Point", coordinates: [boardingArea.location.long, boardingArea.location.lat]},
                 }}
             ),
         };
@@ -252,7 +252,7 @@ const Mutation: IResolverObject<any, Context> = {
             bus_id: busID,
             name,
             description,
-            coords: location && {type: "Point", coordinates: [location.lat, location.long]},
+            coords: location && {type: "Point", coordinates: [location.long, location.lat]},
             order,
             arrival_time: arrivalTime,
             invalidate_time: invalidateTime,
@@ -276,7 +276,7 @@ const Mutation: IResolverObject<any, Context> = {
 
         stop.name = name;
         stop.description = description;
-        stop.coords = location && {type: "Point", coordinates: [location.lat, location.long]};
+        stop.coords = location && {type: "Point", coordinates: [location.long, location.lat]};
         stop.order = order;
         stop.arrival_time = arrivalTime;
         stop.invalidate_time = invalidateTime;
