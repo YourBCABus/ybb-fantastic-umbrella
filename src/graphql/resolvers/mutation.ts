@@ -148,6 +148,32 @@ const Mutation: IResolverObject<any, Context> = {
         return true;
     },
 
+    async clearAll(_, { schoolID }: {schoolID: string}, context) {
+        if (!isValidId(schoolID)) throw new UserInputError("bad_school_id");
+        await authenticateSchoolScope(context, ["bus.updateStatus"], schoolID);
+
+        let buses = await Models.Bus.find({ school_id: schoolID });
+        for (const bus of buses) {
+            const oldBoardingArea = bus.boarding_area;
+            bus.boarding_area = undefined;
+            bus.invalidate_time = new Date();
+            await bus.save();
+
+            if (context.pubsub) {
+                await context.pubsub.publish(BUS_BOARDING_AREA_CHANGE, {
+                    busID: bus.id,
+                    schoolID: bus.school_id,
+                    busName: bus.name,
+                    oldBoardingArea,
+                    newBoardingArea: undefined,
+                    invalidateTime: bus.invalidate_time,
+                });
+            }
+        }
+
+        return true;
+    },
+
     async createBus(_, { schoolID, bus: { otherNames, available, name, company, phone } }: {
         schoolID: string,
         bus: BusInput

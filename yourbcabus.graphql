@@ -25,6 +25,8 @@ type Mutation {
     setUserPermissions(schoolID: ID!, userID: ID!, scopes: [String!]!): Boolean!
     setClientPermissions(schoolID: ID!, clientID: ID!, scopes: [String!]!): Boolean!
 
+    clearAll(schoolID: ID!): Boolean
+
     createBus(schoolID: ID!, bus: BusInput!): Bus!
     updateBus(busID: ID!, bus: BusInput!): Bus!
     updateBusStatus(busID: ID!, status: BusStatusInput!): Bus!
