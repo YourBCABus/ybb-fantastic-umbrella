@@ -140,6 +140,9 @@ export default function makeProvider(config: Config, renderError: Configuration[
             };
         },
         adapter: DBAdapter,
-        renderError
+        renderError,
+        ttl: {
+            Session: 5
+        }
     });
 }
