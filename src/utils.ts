@@ -106,6 +106,7 @@ export function processRedactedSchool(school?: School | null) {
         name: school.name,
         location: processCoordinate(school.location),
         readable: school.public_scopes && school.public_scopes.includes('read'),
+        available: school.available,
     }
 }
 

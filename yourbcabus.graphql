@@ -104,6 +104,7 @@ type RedactedSchool {
     name: String
     location: Location
     readable: Boolean!
+    available: Boolean!
 }
 
 input SchoolInput {
