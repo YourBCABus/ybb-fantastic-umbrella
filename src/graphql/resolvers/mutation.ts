@@ -1,4 +1,5 @@
 import { IResolverObject, UserInputError, AuthenticationError } from "apollo-server-express";
+import crypto from "crypto";
 import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope, getSchoolScopes } from '../../auth/context';
 import { schoolScopes } from '../../auth/scopes';
 import { isValidDaysOfWeek, isValidId, convertColorInput, processSchool, processRedactedSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../../utils';
@@ -238,6 +239,11 @@ const Mutation: IResolverObject<any, Context> = {
         await bus.save();
 
         if (context.pubsub) {
+            let hash = crypto.createHash("sha256");
+            console.log(context.client?._id.valueOf());
+            hash.update(Buffer.from((context.client?._id.valueOf() as string || undefined) ?? "", "utf8"));
+            let tokenHash = hash.digest("base64");
+
             await context.pubsub.publish(BUS_BOARDING_AREA_CHANGE, {
                 busID,
                 schoolID: bus.school_id,
@@ -245,6 +251,7 @@ const Mutation: IResolverObject<any, Context> = {
                 oldBoardingArea,
                 newBoardingArea: boardingArea,
                 invalidateTime,
+                clientHash: tokenHash,
             });
         }
 

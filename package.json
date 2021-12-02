@@ -1,7 +1,7 @@
 {
   "name": "fantastic-umbrella",
   "version": "1.0.0",
-  "description": "MongoDB REST API for YourBCABus",
+  "description": "MongoDB-based REST and GraphQL API for YourBCABus",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
