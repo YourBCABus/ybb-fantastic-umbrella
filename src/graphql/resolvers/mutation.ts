@@ -8,6 +8,22 @@ import { Models } from '../../models';
 import { AlertInput, DismissalTimeDataInput, StopInput, SchoolInput, BusInput, BusStatusInput, MappingDataInput } from '../inputinterfaces';
 import { AlertType } from '../../interfaces';
 import { BUS_BOARDING_AREA_CHANGE } from "../pubsub";
+import { ObjectId } from "mongoose";
+
+const hashObjId = (objId?: ObjectId): string => {
+    const hash = crypto.createHash("sha256");
+    
+    const objIdStr = objId && (
+        <X extends object, Y extends PropertyKey>(obj: X, prop: Y): obj is X & Record<Y, unknown> => Object.prototype.hasOwnProperty.call(obj, prop)
+    )(objId, "id") && objId.id instanceof Buffer
+        ? objId.id.toString('hex')
+        : "000000000000000000000000";
+    
+    hash.update(Buffer.from(objIdStr, "ascii"));
+    const tokenHash = hash.digest("base64");
+
+    return tokenHash;
+}
 
 const Mutation: IResolverObject<any, Context> = {
     async createSchool(_, { school: { name, location, available, timeZone, publicScopes }}: {
@@ -239,10 +255,6 @@ const Mutation: IResolverObject<any, Context> = {
         await bus.save();
 
         if (context.pubsub) {
-            let hash = crypto.createHash("sha256");
-            console.log(context.client?._id.valueOf());
-            hash.update(Buffer.from((context.client?._id.valueOf() as string || undefined) ?? "", "utf8"));
-            let tokenHash = hash.digest("base64");
 
             await context.pubsub.publish(BUS_BOARDING_AREA_CHANGE, {
                 busID,
@@ -251,7 +263,7 @@ const Mutation: IResolverObject<any, Context> = {
                 oldBoardingArea,
                 newBoardingArea: boardingArea,
                 invalidateTime,
-                clientHash: tokenHash,
+                clientHash: hashObjId(context.client?._id),
             });
         }
 
