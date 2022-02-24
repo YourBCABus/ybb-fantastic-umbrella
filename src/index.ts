@@ -92,6 +92,27 @@ app.use(json()); // Body parsing stuff
   alertEndpoints
 ].forEach(fn => fn({app, config}));
 
+// Really hacky urban-invention uptime checker.
+// Seriously we need to replace this sometime
+// But it's midnight and I'm tired.
+if (config.urbanInventionToken) {
+  let lastPing = 0;
+  
+  app.put("/urban-invention-uptime", (req, res) => {
+    // If the token query parameter is correct, update lastPing with the timestamp.
+    if (req.query.token === config.urbanInventionToken) {
+      lastPing = Date.now();
+      res.send("OK");
+    } else {
+      res.send("FAIL");
+    }
+  });
+
+  app.get("/urban-invention-uptime", (_req, res) => {
+    res.json({lastPing});
+  });
+}
+
 // Set up authentication.
 const provider = makeProvider(config, errorPage(app));
 app.use("/auth", makeAuthRoutes(config, provider));

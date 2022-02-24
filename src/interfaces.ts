@@ -57,6 +57,8 @@ export interface Config {
    * Options for Redis, or true to use localhost.
    */
   redis?: RedisOptions | true;
+
+  urbanInventionToken?: string;
 }
 
 /**
