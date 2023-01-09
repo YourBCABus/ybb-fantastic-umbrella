@@ -99,7 +99,7 @@ class DBAdapter implements Adapter {
  * @returns an oidc-provider Provider
  */
 export default function makeProvider(config: Config, renderError: Configuration["renderError"]) {
-    return new Provider(config.authIssuer, {
+    const provider = new Provider(config.authIssuer, {
         cookies: {
             keys: config.authCookieKeys
         },
@@ -145,4 +145,6 @@ export default function makeProvider(config: Config, renderError: Configuration[
             Session: 5
         }
     });
+    provider.proxy = true;
+    return provider;
 }
