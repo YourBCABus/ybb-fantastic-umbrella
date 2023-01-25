@@ -231,9 +231,9 @@ export function processDismissalData(data?: DismissalRange | null) {
  */
 function isValidRGBA({r, g, b, alpha}: {r: number, g: number, b: number, alpha: number}): boolean {
     if (r < 0 || r > 255 || r !== Math.floor(r)) return false;
-    if (g < 0 || g > 255 || g !== Math.floor(r)) return false;
-    if (b < 0 || b > 255 || b !== Math.floor(r)) return false;
-    if (alpha < 0 || alpha > 255 || alpha !== Math.floor(r)) return false;
+    if (g < 0 || g > 255 || g !== Math.floor(g)) return false;
+    if (b < 0 || b > 255 || b !== Math.floor(b)) return false;
+    if (alpha < 0 || alpha > 255 || alpha !== Math.floor(alpha)) return false;
     return true;
 }
 
