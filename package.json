@@ -46,7 +46,7 @@
     "ioredis": "^4.27.6",
     "jsonwebtoken": "^8.5.1",
     "luxon": "^1.26.0",
-    "mongoose": "^5.13.2",
+    "mongoose": "^5.13.15",
     "oidc-provider": "^7.5.1"
   },
   "keywords": []
