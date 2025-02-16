@@ -58,7 +58,11 @@ export interface Config {
    */
   redis?: RedisOptions | true;
 
-  urbanInventionToken?: string;
+  uptimeServices: {
+    name: string;
+    token: string;
+    maxSecs: number;
+  }[];
 }
 
 /**

@@ -25,6 +25,7 @@ import { authContext } from './auth/context';
 import Context from './graphql/context';
 import { setupPubsub } from './graphql/pubsub';
 import errorPage from './errorpage';
+import UptimeStatusService from './services';
 
 // Read the config.
 const config: Config = JSON.parse(fs.readFileSync(path.join(__dirname, "../config.json"), "utf8"));
@@ -39,11 +40,12 @@ mongoose.connect(config.mongo, { useNewUrlParser: true, useUnifiedTopology: true
 let pubsub: RedisPubSub | undefined;
 if (config.redis) {
   const redis = config.redis === true ? new Redis() : new Redis(config.redis);
-  pubsub = new RedisPubSub({
+  const redisPubSubInstance = new RedisPubSub({
     publisher: redis,
     subscriber: redis
   });
-  setupPubsub(pubsub!);
+  setupPubsub(redisPubSubInstance);
+  pubsub = redisPubSubInstance
 } else {
   console.log("Redis is not set up. Subscriptions and notifications will not work.")
 }
@@ -59,7 +61,7 @@ class CostAnalysisApolloServer extends ApolloServer {
     })]}
   }
 }
-const server = new CostAnalysisApolloServer({
+const graphqlServer = new CostAnalysisApolloServer({
   typeDefs,
   resolvers,
   introspection: true,
@@ -75,13 +77,12 @@ const server = new CostAnalysisApolloServer({
 });
 
 // Set up the Express application with Handlebars support.
-const app = express();
-app.engine("hbs", exphbs({ extname: ".hbs" }));
-app.set("view engine", "hbs");
-app.set("json spaces", "\t"); // Pretty-print JSON
-// @ts-ignore
-app.use("/schools", cors()); // CORS support for the legacy REST API
-app.use(json()); // Body parsing stuff
+const expressApp = express();
+expressApp.engine("hbs", exphbs({ extname: ".hbs" }));
+expressApp.set("view engine", "hbs");
+expressApp.set("json spaces", "\t"); // Pretty-print JSON
+expressApp.use("/schools", cors()); // CORS support for the legacy REST API
+expressApp.use(json()); // Body parsing stuff
 
 // Set up the legacy REST API.
 [
@@ -90,46 +91,37 @@ app.use(json()); // Body parsing stuff
   stopEndpoints,
   dismissalEndpoints,
   alertEndpoints
-].forEach(fn => fn({app, config}));
+].forEach(fn => fn({app: expressApp, config}));
 
-// Really hacky urban-invention uptime checker.
-// Seriously we need to replace this sometime
-// But it's midnight and I'm tired.
-if (config.urbanInventionToken) {
-  let lastPing = 0;
-  
-  app.put("/urban-invention-uptime", (req, res) => {
-    // If the token query parameter is correct, update lastPing with the timestamp.
-    if (req.query.token === config.urbanInventionToken) {
-      lastPing = Date.now();
-      res.send("OK");
-    } else {
-      res.send("FAIL");
-    }
-  });
+// Uptime checker for all services
+// TODO: Add Discord/something alerts when time is overrun
+const services: UptimeStatusService[] = [];
+for (const serviceCfg of config.uptimeServices) {
+  const service = new UptimeStatusService(serviceCfg.name)
+    .setToken(serviceCfg.token)
+    .setMaxHeartbeatTime(serviceCfg.maxSecs);
+  services.push(service);
 
-  app.get("/urban-invention-uptime", (_req, res) => {
-    res.json({lastPing});
-  });
+  service.start(expressApp);
 }
 
 // Set up authentication.
-const provider = makeProvider(config, errorPage(app));
-app.use("/auth", makeAuthRoutes(config, provider));
+const provider = makeProvider(config, errorPage(expressApp));
+expressApp.use("/auth", makeAuthRoutes(config, provider));
 
 // Random easter egg, because why not
-app.get("/teapot", (_, res) => {
+expressApp.get("/teapot", (_, res) => {
   res.status(418).send("☕");
 });
 
 // Add the GraphQL API to the Express application.
-server.applyMiddleware({app});
+graphqlServer.applyMiddleware({app: expressApp});
 
 // Static files used during login.
-app.use("/static", express.static(path.join(__dirname, "../static")));
+expressApp.use("/static", express.static(path.join(__dirname, "../static")));
 
 // More authentication setup.
-app.use(provider.callback());
+expressApp.use(provider.callback());
 
 // Start the server.
-app.listen(config.port, config.bindTo);
+expressApp.listen(config.port, config.bindTo);
