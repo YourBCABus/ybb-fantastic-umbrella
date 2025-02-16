@@ -5,6 +5,12 @@ import { Models } from '../models';
 import { AuthenticationError } from 'apollo-server-express';
 import { restrictedScopes, schoolScopes, userScopes } from './scopes';
 
+interface ScopeData {
+    public: Set<string>;
+    domain: Set<string>;
+    user: Set<string>;
+}
+
 /**
  * Auth context passed to GraphQL resolvers.
  */
@@ -27,7 +33,7 @@ export interface AuthContext {
     /**
      * Permission cache used in {@link getSchoolScopes}. Should not be accessed or modified directly.
      */
-    permissionCache: Map<string, {public: Set<string>, user: Set<string>}>;
+    permissionCache: Map<string, ScopeData>;
 }
 
 /**
@@ -71,29 +77,49 @@ export async function authContext(provider: Provider, req: Request): Promise<Aut
  * @param schoolID - school ID
  * @returns a list of public scopes and a list of scopes for this user/client in the school
  */
-export async function getSchoolScopes(context: AuthContext, schoolID: string): Promise<{public: Set<string>, user: Set<string>}> {
-    if (!context.permissionCache.has(schoolID)) {
+export async function getSchoolScopesCached(context: AuthContext, schoolID: string): Promise<ScopeData> {
+    async function getSchoolScopes(context: AuthContext, schoolID: string): Promise<ScopeData> {
         const school = await Models.School.findById(schoolID);
-        if (school) {
-            const publicScopes = new Set(school.public_scopes || []);
-            let userScopes: Set<string> | undefined;
-            if (context.user) {
-                const permission = await Models.Permission.findOne({school_id: schoolID, user_id: context.user._id.toString()});
-                if (permission) {
-                    userScopes = new Set(permission.scopes);
-                }
-            } else if (context.client) {
-                const permission = await Models.ClientPermission.findOne({school_id: schoolID, client_id: context.client._id.toString()});
-                if (permission) {
-                    userScopes = new Set(permission.scopes);
-                }
+        if (!school) return {
+            public: new Set(),
+            domain: new Set(),
+            user: new Set(),
+        };
+
+        const publicScopes = new Set(school.public_scopes || []);
+        if (context.user) {
+            const domainMatches = context.user.google_hd === school.hosted_domain;
+            const permission = await Models.Permission.findOne({school_id: schoolID, user_id: context.user._id.toString()});
+            return {
+                public: publicScopes,
+                domain: domainMatches ? new Set(school.hosted_domain_scopes || []) : new Set(),
+                user: permission ? new Set(permission.scopes) : new Set(),
             }
-            context.permissionCache.set(schoolID, {public: publicScopes, user: userScopes || new Set()});
+        } else if (context.client) {
+            const permission = await Models.ClientPermission.findOne({
+                school_id: schoolID,
+                client_id: context.client._id.toString(),
+            });
+            return {
+                public: publicScopes,
+                domain: new Set(),
+                user: permission ? new Set(permission.scopes) : new Set(),
+            }
         } else {
-            context.permissionCache.set(schoolID, {public: new Set(), user: new Set()});
+            return {
+                public: publicScopes,
+                domain: new Set(),
+                user: new Set(),
+            }
         }
     }
-    return context.permissionCache.get(schoolID)!;
+    const cached = context.permissionCache.get(schoolID);
+    if (cached) return cached;
+    else {
+        const scopes = await getSchoolScopes(context, schoolID);
+        context.permissionCache.set(schoolID, scopes);
+        return scopes;
+    }
 }
 
 /**
@@ -117,9 +143,25 @@ export function authenticateUserScope(context: AuthContext, scopes: string[]): v
  */
 export async function authenticateSchoolScope(context: AuthContext, scopes: string[], schoolID: string) {
     if (scopes.find(scope => !schoolScopes.has(scope))) throw new Error("Invalid school scope");
-    const {public: publicScopes, user: userScopes} = await getSchoolScopes(context, schoolID);
+    const { public: publicScopes, domain: domainScopes, user: userScopes } = await getSchoolScopesCached(context, schoolID);
+
+    // If all scopes are public, you are authenticated.
+    // Otherwise...
     if (scopes.find(scope => !publicScopes.has(scope))) {
-        if (scopes.find(scope => !publicScopes.has(scope) && !userScopes.has(scope))) throw new AuthenticationError("Forbidden");
+        // If your account (client or user) does not have all public, domain, or
+        // user scopes needed, you are forbidden
+        if (scopes.find(scope => {
+            if (publicScopes.has(scope)) return false;
+            if (domainScopes.has(scope)) return false;
+            if (userScopes.has(scope)) return false;
+            return true;
+        })) throw new AuthenticationError("Forbidden");
+
+        // If the current token you're using doesn't have all the scopes, you
+        // are forbidden.
+        // Generally, this would also ensure the above line would not error.
+        // However, because database scopes can change after access tokens have
+        // been issued, the above is checked first.
         if (scopes.find(scope => !context.scopes.has(scope))) throw new AuthenticationError("Forbidden");
     }
 }
@@ -134,12 +176,17 @@ export async function authenticateSchoolScope(context: AuthContext, scopes: stri
 export function authenticateRestrictedScope(context: AuthContext, scopes: string[]): void {
     if (scopes.find(scope => !restrictedScopes.has(scope))) throw new Error("Invalid restricted scope");
     if (scopes.find(scope => !context.scopes.has(scope))) throw new AuthenticationError("Forbidden");
-    if (context.user) {
-        if (!context.user.restricted_scopes) throw new AuthenticationError("Forbidden");
-        if (scopes.find(scope => !context.user!.restricted_scopes!.includes(scope))) throw new AuthenticationError("Forbidden");
+    const user = context.user;
+    const client = context.client;
+    if (user) {
+        const user_restricted_scopes = user.restricted_scopes;
+        if (!user_restricted_scopes) throw new AuthenticationError("Forbidden");
+        if (scopes.find(scope => !user_restricted_scopes.includes(scope))) throw new AuthenticationError("Forbidden");
+    } else if (client) {
+        const client_restricted_scopes = client.restricted_scopes;
+        if (!client_restricted_scopes) throw new AuthenticationError("Forbidden");
+        if (scopes.find(scope => !client_restricted_scopes.includes(scope))) throw new AuthenticationError("Forbidden");
     } else {
-        if (!context.client) throw new AuthenticationError("Forbidden");
-        if (!context.client!.restricted_scopes) throw new AuthenticationError("Forbidden");
-        if (scopes.find(scope => !context.client!.restricted_scopes!.includes(scope))) throw new AuthenticationError("Forbidden");
+        throw new AuthenticationError("Forbidden");
     }
 }

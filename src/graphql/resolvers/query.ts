@@ -1,5 +1,5 @@
 import { IResolverObject, UserInputError } from "apollo-server-express";
-import { authenticateSchoolScope, authenticateUserScope, getSchoolScopes } from '../../auth/context';
+import { authenticateSchoolScope, authenticateUserScope, getSchoolScopesCached } from '../../auth/context';
 import { isValidId, processSchool, processRedactedSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../../utils';
 import Context from "../context";
 import { Models } from '../../models';
@@ -59,7 +59,7 @@ const Query: IResolverObject<any, Context> = {
     },
 
     async currentSchoolScopes(_, { schoolID }: { schoolID: string }, context) {
-        const scopes = await getSchoolScopes(context, schoolID);
+        const scopes = await getSchoolScopesCached(context, schoolID);
         const userScopes = [...scopes.user].filter(scope => context.scopes.has(scope));
         return [...(new Set([...scopes.public, ...userScopes]).values())];
     },

@@ -1,13 +1,6 @@
-import { AuthenticationError, IResolvers, UserInputError } from 'apollo-server-express';
-import { AlertType, Color } from '../../interfaces';
-import { Models } from '../../models';
-import { convertColorInput, isValidDaysOfWeek, isValidId } from '../../utils';
+import { IResolvers } from 'apollo-server-express';
 import Scalars from '../datehandling';
-import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope, getSchoolScopes } from '../../auth/context';
-import { processSchool, processRedactedSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../../utils';
 import Context from '../context';
-import { schoolScopes } from '../../auth/scopes';
-import { AlertInput, DismissalTimeDataInput, StopInput, SchoolInput, BusInput, BusStatusInput, MappingDataInput } from '../inputinterfaces';
 import Query from './query';
 import Mutation from './mutation';
 import School from './school';

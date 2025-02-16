@@ -1,6 +1,5 @@
-import { IResolverObject, UserInputError } from "apollo-server-express";
-import { authenticateSchoolScope, authenticateUserScope, getSchoolScopes } from '../../auth/context';
-import { isValidId, processSchool, processRedactedSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../../utils';
+import { IResolverObject } from "apollo-server-express";
+import { processSchool } from '../../utils';
 import Context from "../context";
 import { Models } from '../../models';
 

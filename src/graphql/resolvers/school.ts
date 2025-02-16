@@ -1,9 +1,8 @@
 import { IResolverObject, UserInputError } from "apollo-server-express";
-import { authenticateSchoolScope, authenticateUserScope, getSchoolScopes } from '../../auth/context';
-import { isValidId, processSchool, processRedactedSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../../utils';
+import { authenticateSchoolScope } from '../../auth/context';
+import { processBus, processAlert, processDismissalData } from '../../utils';
 import Context from "../context";
 import { Models } from '../../models';
-import { AlertInput, DismissalTimeDataInput, StopInput, SchoolInput, BusInput, BusStatusInput, MappingDataInput } from '../inputinterfaces';
 
 const School: IResolverObject<any, Context> = {
     async buses({ id }: { id: string }) {

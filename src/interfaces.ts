@@ -107,6 +107,7 @@ export interface AuthToken extends Permissions {
 export interface User {
   _id: ObjectId;
   google_id?: string;
+  google_hd?: string;
   email: string;
   restricted_scopes?: string[];
 }
@@ -181,6 +182,16 @@ export interface School {
    * List of scopes that can be used in this school without authentication.
    */
   public_scopes?: string[];
+
+  /**
+   * The domain (eg `bergen.org`) with special default stopes for a school
+   */
+  hosted_domain?: string;
+
+  /**
+   * The scopes granted if a users hosted domain matches `hosted_domain`
+   */
+  hosted_domain_scopes?: string[];
 }
 
 /**

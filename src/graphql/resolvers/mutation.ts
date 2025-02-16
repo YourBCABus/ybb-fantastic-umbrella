@@ -1,23 +1,20 @@
 import { IResolverObject, UserInputError, AuthenticationError } from "apollo-server-express";
 import crypto from "crypto";
-import { authenticateRestrictedScope, authenticateSchoolScope, authenticateUserScope, getSchoolScopes } from '../../auth/context';
+import { authenticateRestrictedScope, authenticateSchoolScope } from '../../auth/context';
 import { schoolScopes } from '../../auth/scopes';
-import { isValidDaysOfWeek, isValidId, convertColorInput, processSchool, processRedactedSchool, processBus, processStop, processHistoryEntry, processAlert, processDismissalData } from '../../utils';
+import { isValidDaysOfWeek, isValidId, convertColorInput, processSchool, processBus, processStop, processAlert, processDismissalData } from '../../utils';
 import Context from "../context";
 import { Models } from '../../models';
 import { AlertInput, DismissalTimeDataInput, StopInput, SchoolInput, BusInput, BusStatusInput, MappingDataInput } from '../inputinterfaces';
 import { AlertType } from '../../interfaces';
 import { BUS_BOARDING_AREA_CHANGE } from "../pubsub";
 import { ObjectId } from "mongoose";
+import { ObjectId as MongoObjectId } from "mongodb";
 
 const hashObjId = (objId?: ObjectId): string => {
     const hash = crypto.createHash("sha256");
-    
-    const objIdStr = objId && (
-        <X extends object, Y extends PropertyKey>(obj: X, prop: Y): obj is X & Record<Y, unknown> => Object.prototype.hasOwnProperty.call(obj, prop)
-    )(objId, "id") && objId.id instanceof Buffer
-        ? objId.id.toString('hex')
-        : "000000000000000000000000";
+
+    const objIdStr = objId && (objId instanceof MongoObjectId) ? objId.toHexString() : "000000000000000000000000";
     
     hash.update(Buffer.from(objIdStr, "ascii"));
     const tokenHash = hash.digest("base64");

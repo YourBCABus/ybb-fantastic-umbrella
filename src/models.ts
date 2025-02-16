@@ -8,6 +8,7 @@ import {AuthToken, School, Bus, BusLocationHistory, Stop, StopSuggestion, Dismis
 export namespace Models {
   export const User = model<User & Document>("User", new Schema({
     google_id: {type: String, unique: true},
+    google_hd: {type: String},
     email: String,
     restricted_scopes: [String]
   }));
@@ -63,6 +64,8 @@ export namespace Models {
     available: {type: Boolean, required: true, default: true},
     timezone: String,
     public_scopes: [String],
+    hosted_domain: String,
+    hosted_domain_scopes: [String],
     legacy_api_enabled: Boolean,
     mapping_data: new Schema({
       bounding_box_a: {
